@@ -8,7 +8,6 @@
 #include "QueuingWork.h"
 
 
-
 int main()
 {
 	// code to demo 2 threads sharing a variable //for some bizzare reason hangs "randomly" when ran
@@ -25,13 +24,12 @@ int main()
 
 		// Wait for both threads to finish // cout cases the thing to lock up
 		boostDeposit.join();
-		//tp.setDone(true);
 		boostWithdraw.join();
 
 		std::cout << "All transactions processed. Final amount: " << accountAmount << std::endl;
 	}
 
-	//code to demo queuing and de-queuing
+	/*/code to demo queuing and de-queuing
 	{
 
 		QueuingWork qw;
@@ -48,8 +46,7 @@ int main()
 
 		std::cout << "produced " << qw.getProducerCount() << " objects." << std::endl;
 		std::cout << "consumed " << qw.getConsumerCount() << " objects." << std::endl;
-	}
-
+	}*/
 
 
 	system("pause");

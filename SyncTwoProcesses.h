@@ -35,19 +35,14 @@ TwoProcesses::~TwoProcesses()
 void TwoProcesses::depositMoney(int& t_account, boost::mutex* t_coutGuard)
 {
 	{
-		// go to the bank etc...
-		// wait in line...
-		// lock cout until the closing brace
-		//boost::mutex::scoped_lock lockTest(*t_coutGuard);
+		boost::mutex::scoped_lock lock(m_mutex);
 
-		boost::unique_lock<boost::mutex> lock(m_mutex);
-
-		//m_screen.lock();
 		std::cout << "Depositing money on Thread: " << boost::this_thread::get_id() << std::endl;
-		//m_screen.unlock();
+
 		t_account += 5000;
 
 		// Notify others we're finished
+		m_done = true;
 		m_conditional.notify_all();
 	}
 }
@@ -55,22 +50,16 @@ void TwoProcesses::depositMoney(int& t_account, boost::mutex* t_coutGuard)
 void TwoProcesses::withdrawMoney(int& t_account, boost::mutex* t_coutGuard)
 {
 	{
-		// lock cout until the closing brace
-		//boost::mutex::scoped_lock lockTest(*t_coutGuard);
-		//m_conditionalTest.wait(lockTest);
-
-		boost::unique_lock<boost::mutex> lock(m_mutex);
+		boost::mutex::scoped_lock lock(m_mutex);
 
 		// Wait until we know the money is there
-		m_conditional.wait(lock);
-		//m_screen.lock();
+		while (!m_done)
+		{
+			m_conditional.wait(lock);
+		}
+
 		std::cout << "Withdrawing money on Thread: " << boost::this_thread::get_id() << std::endl;
-		//m_screen.unlock();
+
 		t_account -= 2000;
 	}
-}
-
-void TwoProcesses::setDone(bool t_bool)
-{
-	m_done = t_bool;
 }
