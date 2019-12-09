@@ -202,16 +202,17 @@ void GridManager::handleMiddleClick(sf::Vector2i t_mousePos)
 	int tileIndex = getTileIndex(t_mousePos);
 
 	//change 0 to the cost of the start node after calculations
-	if (m_deleteMode && (m_grid[tileIndex].getType() == GridTile::TileType::Obstacle || m_grid[tileIndex].getType() == GridTile::TileType::Start))
+	if (m_deleteMode/* && (m_grid[tileIndex].getType() == GridTile::TileType::Obstacle || m_grid[tileIndex].getType() == GridTile::TileType::Start)*/)
 	{
 		checkIfStartRemoved(tileIndex);
 
-		m_grid[tileIndex].reset();
-		m_gridUpdateRequired = true;
+		//m_grid[tileIndex].reset();
+		//m_gridUpdateRequired = true;
+		m_grid[tileIndex].setToPath();
 	}
 	else if (!m_deleteMode && (m_grid[tileIndex].getType() == GridTile::TileType::None || m_grid[tileIndex].getType() == GridTile::TileType::Unreachable || m_grid[tileIndex].getType() == GridTile::TileType::Path))
 	{
-		m_grid[tileIndex].setToObstacle();
+		m_grid[tileIndex].setToUnreachable();
 
 		//if goal is set
 		if (m_goalIndex >= 0 && m_grid[tileIndex].getType() != GridTile::TileType::Unreachable)

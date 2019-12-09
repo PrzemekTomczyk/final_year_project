@@ -40,5 +40,7 @@ private:
 	int m_rgb[3]{ 255, 255, 255};
 
 	sf::RectangleShape m_tile;
+
+	
 };
 

@@ -27,12 +27,12 @@ Game::Game() :
 	//adjust window size to get rid of black square and fix tile out of bounds when clicking
 
 
-	windowYSize = 14 * std::ceil(height / 14);
+	windowYSize = 14 * (unsigned)std::ceil(height / 14);
 	windowXSize = (windowYSize / 14) * 10;
 
 	m_tooltipText.setCharacterSize((int)(windowYSize / 62));
-	float outlineThiccness = thor::length(sf::Vector2f(m_tooltipText.getGlobalBounds().width, windowYSize)) * 0.01f;
-	m_textBackground.setSize(sf::Vector2f(m_tooltipText.getGlobalBounds().width + outlineThiccness * 2, windowYSize));
+	float outlineThiccness = thor::length(sf::Vector2f(m_tooltipText.getGlobalBounds().width, (float)windowYSize)) * 0.01f;
+	m_textBackground.setSize(sf::Vector2f(m_tooltipText.getGlobalBounds().width + outlineThiccness * 2, (float)windowYSize));
 
 	m_window.create(sf::VideoMode{ windowXSize + (unsigned int)m_tooltipText.getGlobalBounds().width + (unsigned int)outlineThiccness * 2, windowYSize, 32U }, "REA*", sf::Style::Titlebar | sf::Style::Close);
 	m_window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - m_window.getSize().x / 2, 0));
@@ -41,7 +41,7 @@ Game::Game() :
 	m_textBackground.setFillColor(sf::Color(0, 0, 102));
 	m_textBackground.setOutlineColor(sf::Color(255, 140, 0));
 	m_textBackground.setOutlineThickness(-outlineThiccness);
-	m_textBackground.setPosition(windowXSize, 0);
+	m_textBackground.setPosition((float)windowXSize, 0);
 	m_tooltipText.setPosition(m_textBackground.getPosition().x + outlineThiccness, m_textBackground.getPosition().y + outlineThiccness);
 
 	std::cout << "Starting Grid init" << std::endl;

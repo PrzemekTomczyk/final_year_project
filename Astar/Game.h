@@ -44,7 +44,7 @@ private:
 
 	void setupNodes();
 	void handleNodes(sf::Time t_deltaTime);
-	void handleGrid();
+	void handleGridPathfinding();
 
 	std::string getStringIndex(int t_index);
 	int getNumIndex(std::string t_index);

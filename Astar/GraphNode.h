@@ -23,7 +23,7 @@ public:
 	GraphNode(Node * previous = 0);
 
     // Accessor functions
-    list<Arc> const & arcList() const {
+	std::list<Arc> const & arcList() const {
         return m_arcList;              
     }
 
@@ -109,7 +109,7 @@ private:
 	// -------------------------------------------------------
 	// Description: list of arcs that the node has.
 	// -------------------------------------------------------
-	list<Arc> m_arcList;
+	std::list<Arc> m_arcList;
 
 	// -------------------------------------------------------
 	// Description: This remembers if the node is marked.

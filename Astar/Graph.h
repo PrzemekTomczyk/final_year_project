@@ -6,8 +6,6 @@
 #include <vector>
 #include <functional>
 
-using namespace std;
-
 template <class NodeType, class ArcType> class GraphArc;
 template <class NodeType, class ArcType> class GraphNode;
 
@@ -64,7 +62,6 @@ private:
 	// ----------------------------------------------------------------
 
 	std::vector<Node *> m_nodes;
-
 };
 
 // ----------------------------------------------------------------
@@ -283,7 +280,7 @@ void Graph<NodeType, ArcType>::depthFirst( Node* node, std::function<void(Node *
 template<class NodeType, class ArcType>
 void Graph<NodeType, ArcType>::breadthFirst( Node* node, std::function<void(Node *)> f_visit) {
    if( nullptr != node ) {
-	  queue<Node*> nodeQueue;        
+	  std::queue<Node*> nodeQueue;        
 	  // place the first node on the queue, and mark it.
       nodeQueue.push( node );
       node->setMarked(true);
@@ -325,7 +322,7 @@ void Graph<NodeType, ArcType>::adaptedBreadthFirst( Node* current, Node *goal ) 
 
 	if (nullptr != current && nullptr != goal) {
 
-		queue<Node*> nodeQueue;
+		std::queue<Node*> nodeQueue;
 		// place the first node on the queue, and mark it.
 		nodeQueue.push(current);
 		current->setMarked(true);

@@ -8,7 +8,6 @@ void visit(Node* node) {
 }
 
 Game::Game() :
-	m_window{ sf::VideoMode{ 1920, 1080, 32 }, "Astar Visualization" },
 	m_exitGame{ false },
 	m_graph(30),
 	m_graphGrid(1400),
@@ -26,6 +25,7 @@ Game::Game() :
 
 	if (!USING_GRID)
 	{
+		m_window.create(sf::VideoMode{ 1920, 1080, 32 }, "Astar Visualization");
 		loadTxtFiles();
 		setupNodes();
 	}
@@ -91,7 +91,7 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		if (m_grid.update())
 		{
-			handleGrid();
+			handleGridPathfinding();
 		}
 	}
 }
@@ -468,7 +468,7 @@ void Game::handleNodes(sf::Time t_deltaTime)
 	}
 }
 
-void Game::handleGrid()
+void Game::handleGridPathfinding()
 {
 	m_grid.resetPath();
 
@@ -661,7 +661,7 @@ void Game::setupGrid()
 	windowYSize = 14 * std::ceil(height / 14);
 	windowXSize = (windowYSize / 14) * 10;
 
-	m_window.create(sf::VideoMode{ windowXSize, windowYSize, 32U }, "REA*", sf::Style::Titlebar | sf::Style::Close);
+	m_window.create(sf::VideoMode{ windowXSize, windowYSize, 32U }, "A* Visualisation", sf::Style::Titlebar | sf::Style::Close);
 	m_window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - m_window.getSize().x / 2, 0));
 
 	std::cout << "Starting Grid init" << std::endl;
