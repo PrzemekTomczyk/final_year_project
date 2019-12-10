@@ -90,7 +90,7 @@ void GridTile::render(sf::RenderWindow& t_window, bool t_showCost, bool t_showHe
 		}
 		break;
 	}
-	case GridTile::TileType::Unreachable:
+	case GridTile::TileType::Visited:
 		m_vecFieldLine.setSize(sf::Vector2f(0, 0));
 		m_costText.setFillColor(sf::Color::White);
 		m_rgb[0] = 31;
@@ -115,7 +115,7 @@ void GridTile::render(sf::RenderWindow& t_window, bool t_showCost, bool t_showHe
 		{
 			m_costText.setString("-1");
 		}
-		else if (m_type == GridTile::TileType::Unreachable)
+		else if (m_type == GridTile::TileType::Visited)
 		{
 			m_costText.setString("");
 		}
@@ -158,9 +158,9 @@ void GridTile::setToGoal()
 	m_cost = 0;
 }
 
-void GridTile::setToUnreachable()
+void GridTile::setToVisited()
 {
-	m_type = TileType::Unreachable;
+	m_type = TileType::Visited;
 }
 
 void GridTile::setToPath()

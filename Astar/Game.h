@@ -27,6 +27,10 @@ public:
 	void run();
 
 private:
+	const int MAX_TILES;
+	const int TILES_PER_ROW;
+	const int NO_OF_COLS;
+	
 	// functions
 	void processEvents();
 	void update(sf::Time t_deltaTime);
@@ -40,7 +44,6 @@ private:
 
 	void createNodes();
 	void loadTxtFiles();
-	void loadGridTxtFiles();
 
 	void setupNodes();
 	void handleNodes(sf::Time t_deltaTime);
@@ -50,11 +53,9 @@ private:
 	int getNumIndex(std::string t_index);
 
 	Graph<std::string, int> m_graph;
-	Graph<std::string, int> m_graphGrid;
 	std::map<std::string, int> m_nodeMap;
 
 	std::vector<VisNode> m_visualNodes;
-
 	std::vector<VisNode> m_legendNodes;
 
 	std::string m_start;

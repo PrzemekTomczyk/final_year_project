@@ -11,7 +11,7 @@ public:
 		Goal,
 		Obstacle,
 		None,
-		Unreachable,
+		Visited,
 		Path
 	};
 
@@ -30,7 +30,7 @@ public:
 	void setToObstacle();
 	void setToStart(int t_cost);
 	void setToGoal();
-	void setToUnreachable();
+	void setToVisited();
 	void setToPath();
 	void setHeuristic(sf::Vector2f t_pos);
 	float getHeuristic();

@@ -23,7 +23,7 @@ private:
 	void findAndSetPath(int t_startIndex);
 	int getNeighbourIndex(int t_index, int t_indexOfTileToGetNeighbours);
 	void checkIfStartRemoved(int t_tileClicked);
-	int getTileIndex(sf::Vector2i t_mousePos);
+	int getClickedTileIndex(sf::Vector2i t_mousePos);
 
 	//##############################
 	//REA* functionality
@@ -76,7 +76,7 @@ private:
 	bool m_numOnePressed = false;
 	bool m_showCost = false;
 	bool m_rPressed = false;
-	bool m_gridUpdateRequired = false;
+	bool m_updateRequired = false;
 	bool m_numThreePressed = false;
 	bool m_showVecFields = false;
 	bool m_numFourPressed = false;

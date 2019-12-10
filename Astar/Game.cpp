@@ -3,35 +3,47 @@
 #include <sstream> 
 #include <stdlib.h>
 
-void visit(Node* node) {
+void visitNode(Node* node) {
 	std::cout << "Visiting: " << node->data() << std::endl;
 }
 
+void visitTile(GridTile* tile) {
+	std::cout << "Visiting: " << tile->getIndex() << std::endl;
+}
+
+//#define TEST_LAYOUT
+
 Game::Game() :
+#ifdef TEST_LAYOUT
+	MAX_TILES(140),
+	TILES_PER_ROW(10),
+	NO_OF_COLS(14),
+#else
+	MAX_TILES(2500),
+	TILES_PER_ROW(50),
+	NO_OF_COLS(50),
+#endif // !TEST_LAYOUT
+
 	m_exitGame{ false },
 	m_graph(30),
-	m_graphGrid(1400),
-	m_grid(m_font, m_window),
+	m_grid(m_font, m_window, MAX_TILES, TILES_PER_ROW, NO_OF_COLS),
 	USING_GRID(true)
 {
 	m_window.setVerticalSyncEnabled(true);
-
 
 	if (!m_font.loadFromFile("ariblk.ttf"))
 	{
 		std::cout << "Error loading font!" << std::endl;
 	}
 
-
 	if (!USING_GRID)
 	{
-		m_window.create(sf::VideoMode{ 1920, 1080, 32 }, "Astar Visualization");
+		m_window.create(sf::VideoMode{ 1920, 1080, 32 }, "A* Visualization");
 		loadTxtFiles();
 		setupNodes();
 	}
 	else
 	{
-		loadGridTxtFiles();
 		setupGrid();
 	}
 }
@@ -309,38 +321,6 @@ void Game::loadTxtFiles() {
 	myfile.close();
 }
 
-void Game::loadGridTxtFiles()
-{
-	std::string nodeName;
-	int xpos;
-	int ypos;
-	std::ifstream myfile;
-
-	int index = 0;
-
-	myfile.open("gridNodes.txt");
-
-	while (myfile >> nodeName >> xpos >> ypos)
-	{
-		m_graphGrid.addNode(nodeName, xpos, ypos, index);
-		m_nodeMap[nodeName] = index;
-		index++;
-	}
-
-	myfile.close();
-
-	myfile.open("gridArcs.txt");
-
-	std::string from, to;
-	int	weight;
-
-	while (myfile >> from >> to >> weight) {
-		m_graphGrid.addArc(m_nodeMap[from], m_nodeMap[to], weight);
-	}
-
-	myfile.close();
-}
-
 void Game::setupNodes()
 {
 	m_start = "";
@@ -437,7 +417,7 @@ void Game::handleNodes(sf::Time t_deltaTime)
 
 		if (m_start != "" || m_end != "")
 		{
-			m_graph.aStar(m_graph.nodeIndex(m_nodeMap[m_start]), m_graph.nodeIndex(m_nodeMap[m_end]), visit, vecPath);
+			m_graph.aStar(m_graph.nodeIndex(m_nodeMap[m_start]), m_graph.nodeIndex(m_nodeMap[m_end]), visitNode, vecPath);
 
 			std::cout << "Node path: " << std::endl;
 			for (int i = vecPath.size() - 1; i > -1; i--)
@@ -479,22 +459,14 @@ void Game::handleGridPathfinding()
 
 	m_grid.updateNotRequired();
 
-	std::vector<Node*> vecPath;
-	Node* current;
 	m_start = startString;
 	m_end = goalString;
 
 	if (m_start != "" || m_end != "")
 	{
-		m_graphGrid.aStar(m_graphGrid.nodeIndex(m_nodeMap[m_start]), m_graphGrid.nodeIndex(m_nodeMap[m_end]), visit, vecPath);
+		std::cout << "#########################" << std::endl;
+		m_grid.aStar(visitTile);
 
-		std::cout << "Node path: " << std::endl;
-		for (int i = vecPath.size() - 1; i > -1; i--)
-		{
-			std::cout << vecPath.at(i)->data() << std::endl;
-
-			m_grid.setToPath(getNumIndex(vecPath.at(i)->data()));
-		}
 		m_start = "";
 		m_end = "";
 	}
@@ -653,19 +625,43 @@ int Game::getNumIndex(std::string t_index)
 
 void Game::setupGrid()
 {
+	//setup tooltip text
+	m_tooltipText.setFont(m_font);
+	m_tooltipText.setFillColor(sf::Color::White);
+	m_tooltipText.setString("Mouse controls:\n\nPress LMB to place Goal\n\nPress RMB to place Start Tiles\n\nPress/hold MMB to place Obstacles\n\n\nKeyboard controls:\n\nPress SPACE to toggle between\nplacing obstacles and \nreseting tiles using MMB\n\nPress R reset the grid");
+
+	//take away 50 to make a window slightly smaller that fullscreen
 	int width = sf::VideoMode::getDesktopMode().width - 50;
 	int height = sf::VideoMode::getDesktopMode().height - 50;
 	unsigned int windowYSize = 0;
 	unsigned int windowXSize = 0;
 
-	windowYSize = 14 * std::ceil(height / 14);
-	windowXSize = (windowYSize / 14) * 10;
+	windowYSize = NO_OF_COLS * (unsigned)std::ceil(height / NO_OF_COLS);
+	windowXSize = (windowYSize / NO_OF_COLS) * TILES_PER_ROW;
 
-	m_window.create(sf::VideoMode{ windowXSize, windowYSize, 32U }, "A* Visualisation", sf::Style::Titlebar | sf::Style::Close);
+	//scale character size to be 1/62 of window height
+	m_tooltipText.setCharacterSize((int)(windowYSize / 62));
+	float outlineThiccness = thor::length(sf::Vector2f(m_tooltipText.getGlobalBounds().width, (float)windowYSize)) * 0.01f;
+	m_textBackground.setSize(sf::Vector2f(m_tooltipText.getGlobalBounds().width + outlineThiccness * 2, (float)windowYSize));
+
+#ifdef TEST_LAYOUT
+	std::string windowTitle = "A* Visualisation - TEST_LAYOUT";
+#else
+	std::string windowTitle = "A* Visualisation - BIG";
+#endif // TEST_LAYOUT
+
+
+	m_window.create(sf::VideoMode{ windowXSize + (unsigned int)m_tooltipText.getGlobalBounds().width + (unsigned int)outlineThiccness * 2, windowYSize, 32U }, windowTitle, sf::Style::Titlebar | sf::Style::Close);
 	m_window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - m_window.getSize().x / 2, 0));
 
+	m_textBackground.setFillColor(sf::Color(0, 0, 102));
+	m_textBackground.setOutlineColor(sf::Color(255, 140, 0));
+	m_textBackground.setOutlineThickness(-outlineThiccness);
+	m_textBackground.setPosition((float)windowXSize, 0);
+	m_tooltipText.setPosition(m_textBackground.getPosition().x + outlineThiccness, m_textBackground.getPosition().y + outlineThiccness);
+
 	std::cout << "Starting Grid init" << std::endl;
-	m_grid.init(m_textBackground.getPosition().x);
+	m_grid.init(m_textBackground.getPosition().x + m_textBackground.getSize().x / 2.0f);
 	std::cout << "Finished Grid init" << std::endl;
 
 	//setup end points

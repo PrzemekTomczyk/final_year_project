@@ -133,9 +133,9 @@ void GridManager::handleMouse()
 	else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
 	{
 		m_rightBtn = false;
-		if (m_rightBtn && m_gridUpdateRequired)
+		if (m_rightBtn && m_updateRequired)
 		{
-			m_gridUpdateRequired = false;
+			m_updateRequired = false;
 			resetNonObstacles();
 			if (m_goalIndex >= 0)
 			{
@@ -150,11 +150,11 @@ void GridManager::handleMouse()
 		m_middleBtn = true;
 		handleMiddleClick(sf::Mouse::getPosition(m_window));
 	}
-	else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle) && m_gridUpdateRequired)
+	else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle) && m_updateRequired)
 	{
-		if (m_middleBtn && m_gridUpdateRequired)
+		if (m_middleBtn && m_updateRequired)
 		{
-			m_gridUpdateRequired = false;
+			m_updateRequired = false;
 			resetNonObstacles();
 			if (m_goalIndex >= 0)
 			{
@@ -166,7 +166,7 @@ void GridManager::handleMouse()
 
 void GridManager::handleLeftClick(sf::Vector2i t_mousePos)
 {
-	int tileIndex = getTileIndex(t_mousePos);
+	int tileIndex = getClickedTileIndex(t_mousePos);
 	if (m_grid[tileIndex].getType() == GridTile::TileType::None)
 	{
 		checkIfStartRemoved(tileIndex);
@@ -187,7 +187,7 @@ void GridManager::handleLeftClick(sf::Vector2i t_mousePos)
 
 void GridManager::handleRightClick(sf::Vector2i t_mousePos)
 {
-	int tileIndex = getTileIndex(t_mousePos);
+	int tileIndex = getClickedTileIndex(t_mousePos);
 
 	if (m_grid[tileIndex].getType() == GridTile::TileType::None)
 	{
@@ -199,7 +199,7 @@ void GridManager::handleRightClick(sf::Vector2i t_mousePos)
 
 void GridManager::handleMiddleClick(sf::Vector2i t_mousePos)
 {
-	int tileIndex = getTileIndex(t_mousePos);
+	int tileIndex = getClickedTileIndex(t_mousePos);
 
 	//change 0 to the cost of the start node after calculations
 	if (m_deleteMode/* && (m_grid[tileIndex].getType() == GridTile::TileType::Obstacle || m_grid[tileIndex].getType() == GridTile::TileType::Start)*/)
@@ -210,18 +210,18 @@ void GridManager::handleMiddleClick(sf::Vector2i t_mousePos)
 		//m_gridUpdateRequired = true;
 		m_grid[tileIndex].setToPath();
 	}
-	else if (!m_deleteMode && (m_grid[tileIndex].getType() == GridTile::TileType::None || m_grid[tileIndex].getType() == GridTile::TileType::Unreachable || m_grid[tileIndex].getType() == GridTile::TileType::Path))
+	else if (!m_deleteMode && (m_grid[tileIndex].getType() == GridTile::TileType::None || m_grid[tileIndex].getType() == GridTile::TileType::Visited || m_grid[tileIndex].getType() == GridTile::TileType::Path))
 	{
-		m_grid[tileIndex].setToUnreachable();
+		m_grid[tileIndex].setToVisited();
 
 		//if goal is set
-		if (m_goalIndex >= 0 && m_grid[tileIndex].getType() != GridTile::TileType::Unreachable)
+		if (m_goalIndex >= 0 && m_grid[tileIndex].getType() != GridTile::TileType::Visited)
 		{
-			m_gridUpdateRequired = true;
+			m_updateRequired = true;
 		}
 		else
 		{
-			m_gridUpdateRequired = false;
+			m_updateRequired = false;
 		}
 	}
 }
@@ -357,7 +357,7 @@ void GridManager::checkIfStartRemoved(int t_tileClicked)
 	}
 }
 
-int GridManager::getTileIndex(sf::Vector2i t_mousePos)
+int GridManager::getClickedTileIndex(sf::Vector2i t_mousePos)
 {
 	int row = t_mousePos.x / m_tileSize.x;
 	int col = t_mousePos.y / m_tileSize.y;
@@ -492,7 +492,13 @@ void GridManager::init(float t_textOffset)
 	{
 		for (int j = 0; j < TILES_PER_ROW; j++)
 		{
-			GridTile tile(sf::Vector2f(j * m_tileSize.x + (m_tileSize.x / 2.0), i * m_tileSize.y + (m_tileSize.y / 2.0)), m_font, m_highestCost, m_tileSize);
+			GridTile tile(
+				sf::Vector2f(j * m_tileSize.x + (m_tileSize.x / 2.0), 
+				i * m_tileSize.y + (m_tileSize.y / 2.0)), 
+				m_font, 
+				m_highestCost, 
+				m_tileSize
+			);
 			m_grid.push_back(tile);
 		}
 	}

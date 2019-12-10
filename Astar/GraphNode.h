@@ -20,42 +20,38 @@ public:
 	typedef GraphNode<NodeType, ArcType> Node;
 
 	// Constructor function
-	GraphNode(Node * previous = 0);
+	GraphNode(Node* previous = 0);
 
-    // Accessor functions
-	std::list<Arc> const & arcList() const {
-        return m_arcList;              
-    }
+	// Accessor functions
+	std::list<Arc> const& arcList() const {
+		return m_arcList;
+	}
 
-    bool getMarked() const {
-        return m_marked;
-    }
+	bool getMarked() const {
+		return m_marked;
+	}
 
-    NodeType const & data() const {
-        return m_data;
-    }
+	NodeType const& data() const {
+		return m_data;
+	}
 
-	Node * previous() const {
+	Node* previous() const {
 		return m_previous;
 	}
 
-    // Manipulator functions
-    void setData(NodeType data) {
-        m_data = data;
-    }
+	// Manipulator functions
+	void setData(NodeType data) {
+		m_data = data;
+	}
 
 	void setPos(int t_x, int t_y) {
 		m_xpos = t_x;
 		m_ypos = t_y;
 	}
 
-	float getEstToGoal() {
-		return m_estDist;
+	void setMarked(bool mark) {
+		m_marked = mark;
 	}
-    
-    void setMarked(bool mark) {
-        m_marked = mark;
-    }
 
 	void setVisited(bool t_vist) {
 		m_visted = t_vist;
@@ -64,14 +60,14 @@ public:
 	bool getVisited() {
 		return m_visted;
 	}
-           
-	void setPrevious(Node *previous) {
+
+	void setPrevious(Node* previous) {
 		m_previous = previous;
 	}
 
-    Arc* getArc( Node* pNode );    
-    void addArc( Node* pNode, ArcType pWeight );
-    void removeArc( Node* pNode );
+	Arc* getArc(Node* pNode);
+	void addArc(Node* pNode, ArcType pWeight);
+	void removeArc(Node* pNode);
 
 	float getEstDist();
 	float getCurrDist();
@@ -88,7 +84,7 @@ public:
 	int getY() { return m_ypos; };
 
 private:
-	
+
 	// -------------------------------------------------------
 	// Description: data inside the node
 	// -------------------------------------------------------
@@ -96,6 +92,8 @@ private:
 
 	int m_xpos;
 	int m_ypos;
+
+
 
 	// current distance from start to this node
 	float m_currDist;
@@ -120,13 +118,13 @@ private:
 	// -------------------------------------------------------
 	// Description: pointer to previous node
 	// -------------------------------------------------------
-	Node *m_previous;
+	Node* m_previous;
 };
 
 
 // Constructor function
 template<class NodeType, class ArcType>
-inline GraphNode<NodeType, ArcType>::GraphNode(Node * previous) : m_previous(previous) 
+inline GraphNode<NodeType, ArcType>::GraphNode(Node* previous) : m_previous(previous)
 {
 	m_marked = false;
 }
@@ -140,21 +138,21 @@ inline GraphNode<NodeType, ArcType>::GraphNode(Node * previous) : m_previous(pre
 //                  exist from this to the specified input node.
 // ----------------------------------------------------------------
 template<typename NodeType, typename ArcType>
-GraphArc<NodeType, ArcType>* GraphNode<NodeType, ArcType>::getArc( Node* node ) {
+GraphArc<NodeType, ArcType>* GraphNode<NodeType, ArcType>::getArc(Node* node) {
 
-     auto iter = m_arcList.begin();
-     auto endIter = m_arcList.end();
-     Arc* arc = 0;
-     
-     // find the arc that matches the node
-     for( ; iter != endIter && nullptr == arc; ++iter ) {         
-          if ( (*iter).node() == node) {
-               arc = &( (*iter) );
-          }
-     }
+	auto iter = m_arcList.begin();
+	auto endIter = m_arcList.end();
+	Arc* arc = 0;
 
-     // returns nullptr if not found
-     return arc;
+	// find the arc that matches the node
+	for (; iter != endIter && nullptr == arc; ++iter) {
+		if ((*iter).node() == node) {
+			arc = &((*iter));
+		}
+	}
+
+	// returns nullptr if not found
+	return arc;
 }
 
 // ----------------------------------------------------------------
@@ -167,13 +165,13 @@ GraphArc<NodeType, ArcType>* GraphNode<NodeType, ArcType>::getArc( Node* node ) 
 //  Return Value:   None.
 // ----------------------------------------------------------------
 template<typename NodeType, typename ArcType>
-void GraphNode<NodeType, ArcType>::addArc( Node* node, ArcType weight ) {
-   // Create a new arc.
-   Arc a;
-   a.setNode(node);
-   a.setWeight(weight);   
-   // Add it to the arc list.
-   m_arcList.push_back( a );
+void GraphNode<NodeType, ArcType>::addArc(Node* node, ArcType weight) {
+	// Create a new arc.
+	Arc a;
+	a.setNode(node);
+	a.setWeight(weight);
+	// Add it to the arc list.
+	m_arcList.push_back(a);
 }
 
 
@@ -185,18 +183,18 @@ void GraphNode<NodeType, ArcType>::addArc( Node* node, ArcType weight ) {
 //  Return Value:   None.
 // ----------------------------------------------------------------
 template<typename NodeType, typename ArcType>
-void GraphNode<NodeType, ArcType>::removeArc( Node* node ) {
-     auto iter = m_arcList.begin();
-     auto endIter = m_arcList.end();
+void GraphNode<NodeType, ArcType>::removeArc(Node* node) {
+	auto iter = m_arcList.begin();
+	auto endIter = m_arcList.end();
 
-     int size = m_arcList.size();
-     // find the arc that matches the node
-     for( ; iter != endIter && m_arcList.size() == size;  
-                                                    ++iter ) {
-          if ( (*iter).node() == node) {
-             m_arcList.remove( (*iter) );
-          }                           
-     }
+	int size = m_arcList.size();
+	// find the arc that matches the node
+	for (; iter != endIter && m_arcList.size() == size;
+		++iter) {
+		if ((*iter).node() == node) {
+			m_arcList.remove((*iter));
+		}
+	}
 }
 
 template<class NodeType, class ArcType>
