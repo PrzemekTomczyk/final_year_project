@@ -2,9 +2,14 @@
 #include <SFML/Graphics.hpp>
 #include <Thor/Vectors.hpp>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 class GridTile
 {
+private:
+	int m_index;
+
 public:
 	enum class TileType
 	{
@@ -21,9 +26,7 @@ public:
 	const int GREEN[3]{ 0, 255, 0 };
 	const int BLUE[3]{ 0, 0, 255 };
 
-
-public:
-	GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, GridTile* t_previous = nullptr);
+	GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, sf::Font& t_font,GridTile* t_previous = nullptr);
 	~GridTile();
 	void render(sf::RenderWindow& t_window);
 	void setToObstacle();
@@ -51,6 +54,7 @@ public:
 	float getDiagonal() const;
 
 	sf::Vector2f getPos();
+	sf::Vector2f getPathfindingPos();
 	TileType getType();
 
 private:
@@ -58,6 +62,7 @@ private:
 
 	TileType m_type;
 	sf::Vector2f m_pos;
+	sf::Vector2f m_pathPos;
 	int m_rgb[3]{ 255, 255, 255};
 
 	sf::RectangleShape m_tile;
@@ -68,8 +73,11 @@ private:
 	float m_currDist;
 	float m_estDist;
 	float m_totalDist;
-	int m_index;
 	
 	GridTile* m_previous;
+
+	sf::Font& m_font;
+
+	sf::Text m_text;
 };
 

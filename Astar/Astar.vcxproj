@@ -76,20 +76,12 @@
     <ClInclude Include="GraphNode.h" />
     <ClInclude Include="GridManager.h" />
     <ClInclude Include="GridTile.h" />
-    <ClInclude Include="VisNode.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="arcs.txt" />
-    <Text Include="gridArcs.txt" />
-    <Text Include="gridNodes.txt" />
-    <Text Include="nodes.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GridManager.cpp" />
     <ClCompile Include="GridTile.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="VisNode.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

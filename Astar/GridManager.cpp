@@ -21,6 +21,11 @@ GridManager::GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_max
 
 GridManager::~GridManager()
 {
+	for (auto p : m_grid)
+	{
+		delete p;
+	}
+	m_grid.clear();
 }
 
 bool GridManager::update()
@@ -140,7 +145,7 @@ void GridManager::handleMouse()
 	{
 		if (m_middleBtn && m_changedGrid)
 		{
-			resetNonObstacles(); 
+			resetNonObstacles();
 			m_updateRequired = true;
 		}
 		m_middleBtn = false;
@@ -418,9 +423,11 @@ void GridManager::init(float t_textOffset)
 			m_grid.push_back(
 				new GridTile(
 					sf::Vector2f(j * m_tileSize.x + (m_tileSize.x / 2.0),
-						i * m_tileSize.y + (m_tileSize.y / 2.0)),
+						i * m_tileSize.y + (m_tileSize.y / 2.0)
+					),
 					m_tileSize,
-					tileIndex
+					tileIndex,
+					m_font
 				)
 			);
 		}
@@ -448,9 +455,8 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 		{
 			if (nullptr != m_grid.at(i) && m_grid.at(i)->getType() != GridTile::TileType::Obstacle)
 			{
-				float estDist = std::pow(m_grid.at(m_goalIndex)->getX() - m_grid.at(i)->getX(), 2);
-				estDist += std::pow(m_grid.at(m_goalIndex)->getY() - m_grid.at(i)->getY(), 2);
-				estDist = std::sqrt(estDist);
+				float estDist = thor::length(m_grid.at(m_goalIndex)->getPathfindingPos() - m_grid.at(i)->getPathfindingPos());
+				//estDist *= 1.1f;
 				m_grid.at(i)->setEstDist(estDist);
 
 				// init g[v] to infinity # dont YET know the distance to these nodes
@@ -472,74 +478,96 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 		// while the !pq.empty() && pq.top() != goal node
 		while (!pq.empty() && pq.top() != m_grid.at(m_goalIndex))
 		{
-			if (true)
+			current = pq.top();
+			//pop from pq
+			pq.pop();
+			current->setVisited(true);
+			f_visit(current);
+
+			//GridTile* closestChild = nullptr;
+
+			if (current->getIndex() == 16)
 			{
-				current = pq.top();
-				current->setVisited(true);
-				f_visit(current);
-
-				//for each child node c of pq.top() - 8 neighbours
-				for (int i = 0; i < 8; i++)
-				{
-					GridManager::NeighbourIndex neighbour = static_cast<GridManager::NeighbourIndex>(i);
-					int tileIndex = getNeighbourIndex(neighbour, current->getIndex());
-					if (tileIndex > -1 && m_grid.at(tileIndex)->getType() != GridTile::TileType::Obstacle)
-					{
-						GridTile* child = m_grid.at(tileIndex);
-
-						//if child != previous(pq.top())
-						if (child != current->getPrevious()) {
-							//g(child) # g(c) is weight from current to child + distance of previous node
-							int dist;
-							switch (neighbour)
-							{
-							case GridManager::NeighbourIndex::LEFT:
-							case GridManager::NeighbourIndex::RIGHT:
-							case GridManager::NeighbourIndex::BOTTOM:
-							case GridManager::NeighbourIndex::TOP:
-								dist = 100;
-								break;
-							case GridManager::NeighbourIndex::TOP_LEFT:
-							case GridManager::NeighbourIndex::TOP_RIGHT:
-							case GridManager::NeighbourIndex::BOTTOM_LEFT:
-							case GridManager::NeighbourIndex::BOTTOM_RIGHT:
-								dist = 141;
-								break;
-							default:
-								break;
-							}
-
-							int childCurrDist = current->getCurrDist() + dist;//f(c)
-							//let total child dist = h(child) + 
-							int totalChildDist = child->getEstDist() + childCurrDist;
-
-							if (totalChildDist < child->getTotalDist()) {
-								// set current distance
-								child->setCurrDist(childCurrDist);
-
-								//let f[c] = total distance
-								child->setTotalDist(totalChildDist);
-
-								// set previous pointer of child to pq.top()
-								child->setPrevious(current);
-							}//end if
-
-							if (!child->getMarked()) {
-								//mark child
-								child->setMarked(true);
-
-								//add child to pq
-								pq.push(child);
-							}//end if Marked check
-
-						}//end if we're not checking parent
-
-					}//end if index and TileType check
-
-				}//end for
-				//pop from pq
-				pq.pop();
+				int test = 1337;
 			}
+
+			/// <summary>
+			/// TO-DO:
+			///		1. Investigate why unneeded nodes are getting marked/expanded when path is more than 4 nodes
+			/// </summary>
+
+			//for each child node c of pq.top() - 8 neighbours
+			for (int i = 0; i < 8; i++)
+			{
+				GridManager::NeighbourIndex neighbour = static_cast<GridManager::NeighbourIndex>(i);
+				int tileIndex = getNeighbourIndex(neighbour, current->getIndex());
+				if (tileIndex > -1 && m_grid.at(tileIndex)->getType() != GridTile::TileType::Obstacle)
+				{
+					GridTile* child = m_grid.at(tileIndex);
+
+					//if child != previous(pq.top())
+					if (child != current->getPrevious()) {
+						//g(child) # g(c) is weight from current to child + distance of previous node
+						int dist;
+						switch (neighbour)
+						{
+						case GridManager::NeighbourIndex::LEFT:
+						case GridManager::NeighbourIndex::RIGHT:
+						case GridManager::NeighbourIndex::BOTTOM:
+						case GridManager::NeighbourIndex::TOP:
+							dist = 100;
+							break;
+						case GridManager::NeighbourIndex::TOP_LEFT:
+						case GridManager::NeighbourIndex::TOP_RIGHT:
+						case GridManager::NeighbourIndex::BOTTOM_LEFT:
+						case GridManager::NeighbourIndex::BOTTOM_RIGHT:
+							dist = 141;
+							break;
+						default:
+							break;
+						}
+
+						float childCurrDist = current->getCurrDist() + dist;//f(c)
+						//let total child dist = h(child) + distance so far
+						float totalChildDist = child->getEstDist() + childCurrDist;
+
+						if (totalChildDist < child->getTotalDist()) {
+							// set current distance
+							child->setCurrDist(childCurrDist);
+
+							//let f[c] = total distance
+							child->setTotalDist(totalChildDist);
+
+							//if (closestChild)
+							//{
+							//	if (closestChild->getTotalDist() > child->getTotalDist())
+							//	{
+							//		closestChild = child;
+							//	}
+							//}
+							//else
+							//{
+							//	closestChild = child;
+							//}
+
+							// set previous pointer of child to pq.top()
+							child->setPrevious(current);
+						}//end if
+
+						if (!child->getMarked())
+						{
+							//mark child
+							child->setMarked(true);
+
+							//add child to pq
+							pq.push(child);
+						}//end if Marked check
+
+					}//end if we're not checking parent
+
+				}//end if index and TileType check
+
+			}//end for
 		}//end while
 
 		if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {

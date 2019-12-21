@@ -1,12 +1,14 @@
 ﻿#include "GridTile.h"
 
-GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, GridTile* t_previous) :
+GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, sf::Font& t_font, GridTile* t_previous) :
 	m_pos(t_pos),
 	m_type(TileType::None),
 	m_index(t_index),
-	m_previous(t_previous)
+	m_previous(t_previous),
+	m_font(t_font)
 {
 	m_marked = false;
+	m_visited = false;
 
 	m_tile.setFillColor(sf::Color(m_rgb[0], m_rgb[1], m_rgb[2]));
 	m_tile.setSize(t_size);
@@ -14,16 +16,36 @@ GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, GridTil
 	m_tile.setPosition(m_pos);
 	m_tile.setOutlineColor(sf::Color::Black);
 	m_tile.setOutlineThickness(-1.0f);
+
+	int adjustX = (m_pos.x / m_tile.getSize().x) + 1;
+	int adjustY = (m_pos.y / m_tile.getSize().y) + 1;
+
+	int x = (m_pos.x / (m_tile.getSize().x / 2) - adjustX) * 100;
+	int y = (m_pos.y / (m_tile.getSize().y / 2) - adjustY) * 100;
+	m_pathPos = sf::Vector2f(x, y);
+
+	m_text.setFont(m_font);
+	m_text.setCharacterSize(12);
+	m_text.setFillColor(sf::Color::Black);
 }
 
 GridTile::~GridTile()
 {
+	m_previous = nullptr;
 }
 
 void GridTile::render(sf::RenderWindow& t_window)
 {
 	setColour();
 	t_window.draw(m_tile);
+
+	//std::stringstream stream;
+	//std::string str;
+	//stream << "C: " << std::fixed << std::setprecision(2) << (m_currDist) << "\n" << "E: " << std::fixed << std::setprecision(2) << m_estDist << "\n" << "T: " << std::fixed << std::setprecision(2) << (m_totalDist) << "\n" << "I: " << m_index;
+	//str = stream.str();
+	//m_text.setPosition(m_pos - m_tile.getSize() / 2.0f);
+	//m_text.setString(str);
+	//t_window.draw(m_text);
 }
 
 void GridTile::setToObstacle()
@@ -156,6 +178,11 @@ float GridTile::getDiagonal() const
 sf::Vector2f GridTile::getPos()
 {
 	return m_pos;
+}
+
+sf::Vector2f GridTile::getPathfindingPos()
+{
+	return m_pathPos;
 }
 
 GridTile::TileType GridTile::getType()
