@@ -33,7 +33,7 @@ class GridManager
 	};
 
 public:
-	GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_maxTiles, int t_tilesPerRow, int t_noOfCols);
+	GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_maxTiles, int t_noOfRows, int t_tilesPerRow);
 	~GridManager();
 	bool update();
 	void render();
@@ -58,6 +58,7 @@ private:
 	void checkIfStartRemoved(int t_tileClicked);
 	int getClickedTileIndex(sf::Vector2i t_mousePos);
 	void setTestLayout();
+	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
 
 	//##############################
 	//vectors
@@ -76,8 +77,8 @@ private:
 	//consts
 	const int TEST_LAYOUT = 140;
 	const int MAX_TILES;
+	const int NO_OF_ROWS;
 	const int TILES_PER_ROW;
-	const int NO_OF_COLS;
 
 	//side neighbours
 	const int LEFT_TILE = -1;

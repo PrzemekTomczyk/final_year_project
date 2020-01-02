@@ -35,12 +35,12 @@ private:
 	const int TEST_TILE_AMOUNT = 140;
 	const int SANDBOX_TILE_AMOUNT = 2500;
 
-	const int TEST_LAYOUT_ROWS = 10;
-	const int TEST_LAYOUT_COLS = 14;
+	const int TEST_LAYOUT_TILES_PER_ROW = 10;
+	const int TEST_LAYOUT_ROWS = 14;
 
+	const int SANDBOX_LAYOUT_TILES_PER_ROW = 50;
 	const int SANDBOX_LAYOUT_ROWS = 50;
-	const int SANDBOX_LAYOUT_COLS = 50;
-	
+
 	// functions
 	void processEvents();
 	void update(sf::Time t_deltaTime);

@@ -20,7 +20,7 @@ Game::Game() :
 		std::cout << "Error loading font!" << std::endl;
 	}
 
-	m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_COLS);
+	m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
 	setupGrid();
 }
 
@@ -306,14 +306,14 @@ void Game::initLayout()
 	switch (m_layout)
 	{
 	case GridLayout::TEST:
-		m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_COLS);
+		m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
 		break;
 	case GridLayout::SANDBOX:
-		m_grid = new GridManager(m_font, m_window, SANDBOX_TILE_AMOUNT, SANDBOX_LAYOUT_ROWS, SANDBOX_LAYOUT_COLS);
+		m_grid = new GridManager(m_font, m_window, SANDBOX_TILE_AMOUNT, SANDBOX_LAYOUT_TILES_PER_ROW, SANDBOX_LAYOUT_ROWS);
 		break;
 	default:
 		//create test layout by default
-		m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_COLS);
+		m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
 		break;
 	}
 
@@ -336,17 +336,16 @@ void Game::setupGrid()
 		unsigned int windowXSize = 0;
 		std::string windowTitle = "";
 
-
 		switch (m_layout)
 		{
 		case GridLayout::TEST:
-			windowYSize = TEST_LAYOUT_COLS * (unsigned)std::ceil(height / TEST_LAYOUT_COLS);
-			windowXSize = (windowYSize / TEST_LAYOUT_COLS) * TEST_LAYOUT_ROWS;
+			windowYSize = TEST_LAYOUT_ROWS * (unsigned)std::ceil(height / TEST_LAYOUT_ROWS);
+			windowXSize = (windowYSize / TEST_LAYOUT_ROWS) * TEST_LAYOUT_TILES_PER_ROW;
 			windowTitle = "A* Visualisation - Test Layout";
 			break;
 		case GridLayout::SANDBOX:
-			windowYSize = SANDBOX_LAYOUT_COLS * (unsigned)std::ceil(height / SANDBOX_LAYOUT_COLS);
-			windowXSize = (windowYSize / SANDBOX_LAYOUT_COLS) * SANDBOX_LAYOUT_ROWS;
+			windowYSize = SANDBOX_LAYOUT_ROWS * (unsigned)std::ceil(height / SANDBOX_LAYOUT_ROWS);
+			windowXSize = (windowYSize / SANDBOX_LAYOUT_ROWS) * SANDBOX_LAYOUT_TILES_PER_ROW;
 			windowTitle = "A* Visualisation - Sandbox Layout";
 			break;
 		default:

@@ -14,17 +14,9 @@
 #pragma comment(lib,"thor.lib") 
 #endif 
 
-
 #include "Game.h"
 
-/// <summary>
-/// main enrtry point
-/// </summary>
-/// <returns>success or failure</returns>
-int main()
-{
+void main() {
 	Game game;
 	game.run();
-
-	return 1; // success
 }

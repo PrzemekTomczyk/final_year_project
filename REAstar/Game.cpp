@@ -1,127 +1,97 @@
 #include "Game.h"
-#include <iostream>
+#include "Thor/Vectors.hpp"
+#include <sstream> 
+#include <stdlib.h>
 
-/// <summary>
-/// default constructor
-/// setup the window properties
-/// load and setup the text 
-/// load and setup thne image
-/// </summary>
-Game::Game() :
-	//m_window{ },
-	m_exitGame{ false }, //when true game will exit
-	m_grid(m_font, m_window)
-{
-	setupFont(); // load font 
-
-	//setup tooltip text
-	m_tooltipText.setFont(m_font);
-	m_tooltipText.setFillColor(sf::Color::White);
-	m_tooltipText.setString("Mouse controls:\n\nPress LMB to place Goal\n\nPress RMB to place Start Tiles\n\nPress/hold MMB to place Obstacles\n\n\nKeyboard controls:\n\nPress SPACE to toggle between\nplacing obstacles and \nreseting tiles using MMB\n\nPress 1 to display cost values\n\nPress 2 to remove Goal tile\n\nPress R reset the grid");
-
-	int width = sf::VideoMode::getDesktopMode().width - 50;
-	int height = sf::VideoMode::getDesktopMode().height - 50;
-	unsigned int windowYSize = 0;
-	unsigned int windowXSize = 0;
-
-	//adjust window size to get rid of black square and fix tile out of bounds when clicking
-
-
-	windowYSize = 14 * (unsigned)std::ceil(height / 14);
-	windowXSize = (windowYSize / 14) * 10;
-
-	m_tooltipText.setCharacterSize((int)(windowYSize / 62));
-	float outlineThiccness = thor::length(sf::Vector2f(m_tooltipText.getGlobalBounds().width, (float)windowYSize)) * 0.01f;
-	m_textBackground.setSize(sf::Vector2f(m_tooltipText.getGlobalBounds().width + outlineThiccness * 2, (float)windowYSize));
-
-	m_window.create(sf::VideoMode{ windowXSize + (unsigned int)m_tooltipText.getGlobalBounds().width + (unsigned int)outlineThiccness * 2, windowYSize, 32U }, "REA*", sf::Style::Titlebar | sf::Style::Close);
-	m_window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - m_window.getSize().x / 2, 0));
-
-
-	m_textBackground.setFillColor(sf::Color(0, 0, 102));
-	m_textBackground.setOutlineColor(sf::Color(255, 140, 0));
-	m_textBackground.setOutlineThickness(-outlineThiccness);
-	m_textBackground.setPosition((float)windowXSize, 0);
-	m_tooltipText.setPosition(m_textBackground.getPosition().x + outlineThiccness, m_textBackground.getPosition().y + outlineThiccness);
-
-	std::cout << "Starting Grid init" << std::endl;
-	m_grid.init(m_textBackground.getPosition().x + m_textBackground.getSize().x / 2.0f);
-	std::cout << "Finished Grid init" << std::endl;
+void visitTile(GridTile* tile) {
+	std::cout << "Visiting: " << tile->getIndex() << std::endl;
 }
 
-/// <summary>
-/// default destructor we didn't dynamically allocate anything
-/// so we don't need to free it, but mthod needs to be here
-/// </summary>
+//#define TEST_LAYOUT
+
+Game::Game() :
+	m_exitGame{ false },
+	m_layout(GridLayout::TEST)
+{
+	m_window.setVerticalSyncEnabled(true);
+
+	if (!m_font.loadFromFile("ariblk.ttf"))
+	{
+		std::cout << "Error loading font!" << std::endl;
+	}
+
+	m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
+	setupGrid();
+}
+
 Game::~Game()
 {
 }
 
-
-/// <summary>
-/// main game loop
-/// update 60 times per second,
-/// process update as often as possible and at least 60 times per second
-/// draw as often as possible but only updates are on time
-/// if updates run slow then don't render frames
-/// </summary>
 void Game::run()
 {
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
-	const float fps{ 60.0f };
-	sf::Time timePerFrame = sf::seconds(1.0f / fps); // 60 fps
+	sf::Time timePerFrame = sf::seconds(1.f / 60.f);
 	while (m_window.isOpen())
 	{
-		processEvents(); // as many as possible
+		processEvents();
 		timeSinceLastUpdate += clock.restart();
 		while (timeSinceLastUpdate > timePerFrame)
 		{
 			timeSinceLastUpdate -= timePerFrame;
-			processEvents(); // at least 60 fps
-			update(timePerFrame); //60 fps
+			processEvents();
+			update(timePerFrame);
 		}
-		render(); // as many as possible
+		render();
 	}
 }
-/// <summary>
-/// handle user and system events/ input
-/// get key presses/ mouse moves etc. from OS
-/// and user :: Don't do game update here
-/// </summary>
+
 void Game::processEvents()
 {
-	sf::Event newEvent;
-	while (m_window.pollEvent(newEvent))
+	sf::Event event;
+	processScreenEvents();
+	while (m_window.pollEvent(event))
 	{
-		if (sf::Event::Closed == newEvent.type) // window message
+		if (sf::Event::Closed == event.type) // window message
+		{
+			m_window.close();
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
 			m_exitGame = true;
 		}
-		if (sf::Event::KeyPressed == newEvent.type) //user pressed a key
+		if (sf::Event::KeyPressed == event.type)
 		{
-			processKeys(newEvent);
+			if (!m_loadLayout)
+			{
+				if (event.key.code == sf::Keyboard::F1)
+				{
+					m_loadLayout = true;
+					m_layout = GridLayout::TEST;
+					initLayout();
+				}
+				if (event.key.code == sf::Keyboard::F2)
+				{
+					m_loadLayout = true;
+					m_layout = GridLayout::SANDBOX;
+					initLayout();
+				}
+			}
+		}
+		else if (sf::Event::KeyReleased == event.type)
+		{
+			if (m_loadLayout)
+			{
+				if (event.key.code == sf::Keyboard::F1 || event.key.code == sf::Keyboard::F2)
+				{
+					m_loadLayout = false;
+				}
+			}
 		}
 	}
 }
 
-
-/// <summary>
-/// deal with key presses from the user
-/// </summary>
-/// <param name="t_event">key press event</param>
-void Game::processKeys(sf::Event t_event)
-{
-	if (sf::Keyboard::Escape == t_event.key.code)
-	{
-		m_exitGame = true;
-	}
-}
-
-/// <summary>
-/// Update the game world
-/// </summary>
-/// <param name="t_deltaTime">time interval per frame</param>
 void Game::update(sf::Time t_deltaTime)
 {
 	if (m_exitGame)
@@ -129,13 +99,12 @@ void Game::update(sf::Time t_deltaTime)
 		m_window.close();
 	}
 
-	m_grid.update();
-
+	if (m_grid->update())
+	{
+		handleGridPathfinding();
+	}
 }
 
-/// <summary>
-/// draw the frame and then switch buffers
-/// </summary>
 void Game::render()
 {
 	m_window.clear(sf::Color::Black);
@@ -143,18 +112,266 @@ void Game::render()
 	m_window.draw(m_textBackground);
 	m_window.draw(m_tooltipText);
 
-	m_grid.render();
+	m_grid->render();
 
 	m_window.display();
 }
 
-/// <summary>
-/// load the font and setup the text message for screen
-/// </summary>
-void Game::setupFont()
+void Game::processScreenEvents()
 {
-	if (!m_font.loadFromFile("ASSETS\\FONTS\\ariblk.ttf"))
+}
+
+void Game::handleGridPathfinding()
+{
+	m_grid->resetPath();
+
+	int start = m_grid->getStartIndex();
+	std::string startString = getStringIndex(start);
+	int goal = m_grid->getGoalIndex();
+	std::string goalString = getStringIndex(goal);
+
+	m_grid->updateNotRequired();
+
+	m_start = startString;
+	m_end = goalString;
+
+	if (m_start != "" || m_end != "")
 	{
-		std::cout << "problem loading arial black font" << std::endl;
+		std::cout << "#########################" << std::endl;
+		m_grid->reaAlgorithm();
+
+		m_start = "";
+		m_end = "";
+	}
+}
+
+std::string Game::getStringIndex(int t_index)
+{
+	std::string startString = "";
+	if (t_index > 129)
+	{
+		t_index = (t_index % 130);
+		startString = "n" + std::to_string(t_index);
+	}
+	else if (t_index > 119)
+	{
+		t_index = (t_index % 120);
+		startString = "m" + std::to_string(t_index);
+	}
+	else if (t_index > 109)
+	{
+		t_index = (t_index % 110);
+		startString = "l" + std::to_string(t_index);
+	}
+	else if (t_index > 99)
+	{
+		t_index = (t_index % 100);
+		startString = "k" + std::to_string(t_index);
+	}
+	else if (t_index > 89)
+	{
+		t_index = (t_index % 90);
+		startString = "j" + std::to_string(t_index);
+	}
+	else if (t_index > 79)
+	{
+		t_index = (t_index % 80);
+		startString = "i" + std::to_string(t_index);
+	}
+	else if (t_index > 69)
+	{
+		t_index = (t_index % 70);
+		startString = "h" + std::to_string(t_index);
+	}
+	else if (t_index > 59)
+	{
+		t_index = (t_index % 60);
+		startString = "g" + std::to_string(t_index);
+	}
+	else if (t_index > 49)
+	{
+		t_index = (t_index % 50);
+		startString = "f" + std::to_string(t_index);
+	}
+	else if (t_index > 39)
+	{
+		t_index = (t_index % 40);
+		startString = "e" + std::to_string(t_index);
+	}
+	else if (t_index > 29)
+	{
+		t_index = (t_index % 30);
+		startString = "d" + std::to_string(t_index);
+	}
+	else if (t_index > 19)
+	{
+		t_index = (t_index % 20);
+		startString = "c" + std::to_string(t_index);
+	}
+	else if (t_index > 9)
+	{
+		t_index = (t_index % 10);
+		startString = "b" + std::to_string(t_index);
+	}
+	else if (t_index <= 9) {
+		startString = "a" + std::to_string(t_index);
+	}
+	return startString;
+}
+
+int Game::getNumIndex(std::string t_index)
+{
+	int numericalIndex = (int)t_index.at(1) - 48;
+
+	if (t_index.at(0) == char('a'))
+	{
+		return numericalIndex;
+	}
+	else if (t_index.at(0) == char('b'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 10;
+	}
+	else if (t_index.at(0) == char('c'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 20;
+	}
+	else if (t_index.at(0) == char('d'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 30;
+	}
+	else if (t_index.at(0) == char('e'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 40;
+	}
+	else if (t_index.at(0) == char('f'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 50;
+	}
+	else if (t_index.at(0) == char('g'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 60;
+	}
+	else if (t_index.at(0) == char('h'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 70;
+	}
+	else if (t_index.at(0) == char('i'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 80;
+	}
+	else if (t_index.at(0) == char('j'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 90;
+	}
+	else if (t_index.at(0) == char('k'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 100;
+	}
+	else if (t_index.at(0) == char('l'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 110;
+	}
+	else if (t_index.at(0) == char('m'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 120;
+	}
+	else if (t_index.at(0) == char('n'))
+	{
+		//ssIndex >> numericalIndex;
+		numericalIndex += 130;
+	}
+
+	return numericalIndex;
+}
+
+void Game::initLayout()
+{
+	if (m_grid)
+	{
+		delete m_grid;
+	}
+
+	switch (m_layout)
+	{
+	case GridLayout::TEST:
+		m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
+		break;
+	case GridLayout::SANDBOX:
+		m_grid = new GridManager(m_font, m_window, SANDBOX_TILE_AMOUNT, SANDBOX_LAYOUT_TILES_PER_ROW, SANDBOX_LAYOUT_ROWS);
+		break;
+	default:
+		//create test layout by default
+		m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
+		break;
+	}
+
+	setupGrid();
+}
+
+void Game::setupGrid()
+{
+	if (m_grid)
+	{
+		//setup tooltip text
+		m_tooltipText.setFont(m_font);
+		m_tooltipText.setFillColor(sf::Color::White);
+		m_tooltipText.setString("Mouse controls:\n\nPress LMB to place Goal\n\nPress RMB to place Start Tiles\n\nPress/hold MMB to place Obstacles\n\n\nKeyboard controls:\n\nPress SPACE to toggle between\nplacing obstacles and \nreseting tiles using MMB\n\nPress F1 to load Test Layout\n\nPress F2 to load Sandbox Layout\n\nPress R reset the grid");
+
+		//take away 50 to make a window slightly smaller that fullscreen
+		int width = sf::VideoMode::getDesktopMode().width - 50;
+		int height = sf::VideoMode::getDesktopMode().height - 50;
+		unsigned int windowYSize = 0;
+		unsigned int windowXSize = 0;
+		std::string windowTitle = "";
+
+		switch (m_layout)
+		{
+		case GridLayout::TEST:
+			windowYSize = TEST_LAYOUT_ROWS * (unsigned)std::ceil(height / TEST_LAYOUT_ROWS);
+			windowXSize = (windowYSize / TEST_LAYOUT_ROWS) * TEST_LAYOUT_TILES_PER_ROW;
+			windowTitle = "REA* Visualisation - Test Layout";
+			break;
+		case GridLayout::SANDBOX:
+			windowYSize = SANDBOX_LAYOUT_ROWS * (unsigned)std::ceil(height / SANDBOX_LAYOUT_ROWS);
+			windowXSize = (windowYSize / SANDBOX_LAYOUT_ROWS) * SANDBOX_LAYOUT_TILES_PER_ROW;
+			windowTitle = "REA* Visualisation - Sandbox Layout";
+			break;
+		default:
+			break;
+		}
+
+		//scale character size to be 1/62 of window height
+		m_tooltipText.setCharacterSize((int)(windowYSize / 62));
+		float outlineThiccness = thor::length(sf::Vector2f(m_tooltipText.getGlobalBounds().width, (float)windowYSize)) * 0.01f;
+		m_textBackground.setSize(sf::Vector2f(m_tooltipText.getGlobalBounds().width + outlineThiccness * 2, (float)windowYSize));
+
+		m_window.create(sf::VideoMode{ windowXSize + (unsigned int)m_tooltipText.getGlobalBounds().width + (unsigned int)outlineThiccness * 2, windowYSize, 32U }, windowTitle, sf::Style::Titlebar | sf::Style::Close);
+		m_window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - m_window.getSize().x / 2, 0));
+
+		m_textBackground.setFillColor(sf::Color(0, 0, 102));
+		m_textBackground.setOutlineColor(sf::Color(255, 140, 0));
+		m_textBackground.setOutlineThickness(-outlineThiccness);
+		m_textBackground.setPosition((float)windowXSize, 0);
+		m_tooltipText.setPosition(m_textBackground.getPosition().x + outlineThiccness, m_textBackground.getPosition().y + outlineThiccness);
+
+		std::cout << "Starting Grid init" << std::endl;
+		m_grid->init(m_textBackground.getPosition().x + m_textBackground.getSize().x / 2.0f);
+		std::cout << "Finished Grid init" << std::endl;
+
+		//setup end points
+		m_start = "";
+		m_end = "";
 	}
 }

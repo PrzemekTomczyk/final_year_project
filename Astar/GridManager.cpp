@@ -1,19 +1,18 @@
 ﻿#include "GridManager.h"
 
-GridManager::GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_maxTiles, int t_tilesPerRow, int t_noOfCols) :
+GridManager::GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_maxTiles, int t_noOfRows, int t_tilesPerRow) :
 	m_font(t_font),
 	m_window(t_window),
 	m_grid(MAX_TILES, nullptr),
 	MAX_TILES(t_maxTiles),
+	NO_OF_ROWS(t_noOfRows),
 	TILES_PER_ROW(t_tilesPerRow),
-	NO_OF_COLS(t_noOfCols),
 	TOP_TILE(-TILES_PER_ROW),
 	LEFT_TOP_TILE(TOP_TILE - 1),
 	RIGHT_TOP_TILE(TOP_TILE + 1),
 	BOTTOM_TILE(TILES_PER_ROW),
 	LEFT_BOTTOM_TILE(BOTTOM_TILE - 1),
 	RIGHT_BOTTOM_TILE(BOTTOM_TILE + 1)
-
 {
 	m_placeString = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPLACE MODE";
 	m_deleteString = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDELETE MODE";
@@ -335,26 +334,26 @@ void GridManager::checkIfStartRemoved(int t_tileClicked)
 
 int GridManager::getClickedTileIndex(sf::Vector2i t_mousePos)
 {
-	int row = t_mousePos.x / m_tileSize.x;
-	int col = t_mousePos.y / m_tileSize.y;
+	int col = t_mousePos.x / m_tileSize.x;
+	int row = t_mousePos.y / m_tileSize.y;
 
-	if (col < 0)
-	{
-		col = 0;
-	}
-	else if (col > NO_OF_COLS - 1)
-	{
-		col = NO_OF_COLS - 1;
-	}
 	if (row < 0)
 	{
 		row = 0;
 	}
-	else if (row > TILES_PER_ROW - 1)
+	else if (row > NO_OF_ROWS - 1)
 	{
-		row = TILES_PER_ROW - 1;
+		row = NO_OF_ROWS - 1;
 	}
-	return  row + (col * TILES_PER_ROW);
+	if (col < 0)
+	{
+		col = 0;
+	}
+	else if (col > TILES_PER_ROW - 1)
+	{
+		col = TILES_PER_ROW - 1;
+	}
+	return  col + (row * TILES_PER_ROW);
 }
 
 int GridManager::getStartIndex()
@@ -411,11 +410,11 @@ void GridManager::setTestLayout()
 void GridManager::init(float t_textOffset)
 {
 	//use height of the window to make squares as the right side of the screen is used for tooltip info
-	m_tileSize.y = m_window.getSize().y / NO_OF_COLS;
+	m_tileSize.y = m_window.getSize().y / NO_OF_ROWS;
 	m_tileSize.x = m_tileSize.y;
 	m_grid.reserve(MAX_TILES);
 
-	for (int i = 0; i < NO_OF_COLS; i++)
+	for (int i = 0; i < NO_OF_ROWS; i++)
 	{
 		for (int j = 0; j < TILES_PER_ROW; j++)
 		{
@@ -490,11 +489,6 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 			{
 				int test = 1337;
 			}
-
-			/// <summary>
-			/// TO-DO:
-			///		1. Investigate why unneeded nodes are getting marked/expanded when path is more than 4 nodes
-			/// </summary>
 
 			//for each child node c of pq.top() - 8 neighbours
 			for (int i = 0; i < 8; i++)
