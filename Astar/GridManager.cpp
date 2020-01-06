@@ -483,13 +483,6 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 			current->setVisited(true);
 			f_visit(current);
 
-			//GridTile* closestChild = nullptr;
-
-			if (current->getIndex() == 16)
-			{
-				int test = 1337;
-			}
-
 			//for each child node c of pq.top() - 8 neighbours
 			for (int i = 0; i < 8; i++)
 			{
@@ -531,18 +524,6 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 
 							//let f[c] = total distance
 							child->setTotalDist(totalChildDist);
-
-							//if (closestChild)
-							//{
-							//	if (closestChild->getTotalDist() > child->getTotalDist())
-							//	{
-							//		closestChild = child;
-							//	}
-							//}
-							//else
-							//{
-							//	closestChild = child;
-							//}
 
 							// set previous pointer of child to pq.top()
 							child->setPrevious(current);

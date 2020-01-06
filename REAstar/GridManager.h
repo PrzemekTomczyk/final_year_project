@@ -38,13 +38,13 @@ public:
 	~GridManager();
 	bool update();
 	void render();
+	void tempRender();
 	void init(float t_textOffset);
 	int getStartIndex();
 	int getGoalIndex();
 	void updateNotRequired();
 	void setToPath(int t_index);
 	void resetPath();
-	void aStar(std::function<void(GridTile*)> f_visit);
 	void reaAlgorithm();
 
 private:
@@ -61,20 +61,22 @@ private:
 	int getClickedTileIndex(sf::Vector2i t_mousePos);
 	void setTestLayout();
 
-	bool insertS(std::vector<int>& t_neighbours);
-	bool expand(int t_cbn);
+	//#######################
+	//rea* functions
+	bool insertS(std::vector<int>& t_corners);
+	bool expand(int t_cbn, std::vector<int>& t_corners);
 	bool successor();
 	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
+	void calculateNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current);
+	GridManager::NeighbourIndex directionToGoal(int t_tileIndex);
 
 	//functions for finding rectangle boundaries
 	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin);
 	void getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin, int t_limit1, int t_limit2, bool& t_goalFound);
 	int getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound);
 
-	//##############################
 	//vectors
 	std::vector<GridTile*> m_grid;
-	std::vector<int> m_reaList;
 	sf::Vector2f m_tileSize;
 
 	//references

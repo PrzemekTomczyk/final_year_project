@@ -1,5 +1,7 @@
 ﻿#include "GridManager.h"
 
+#define _DEBUG(x) std::cout << #x << " = " << x << std::endl;
+
 GridManager::GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_maxTiles, int t_noOfRows, int t_tilesPerRow) :
 	m_font(t_font),
 	m_window(t_window),
@@ -46,6 +48,17 @@ void GridManager::render()
 	{
 		m_grid.at(i)->render(m_window);
 	}
+}
+
+void GridManager::tempRender()
+{
+	m_window.clear(sf::Color::Black);
+	m_window.draw(m_placeModeTxt);
+	for (int i = 0; i < m_grid.size(); i++)
+	{
+		m_grid.at(i)->render(m_window);
+	}
+	m_window.display();
 }
 
 void GridManager::handleInput()
@@ -442,148 +455,6 @@ void GridManager::init(float t_textOffset)
 	}
 }
 
-//void GridManager::aStar(std::function<void(GridTile*)> f_visit)
-//{
-//	if (m_startIndex > -1 && m_goalIndex > -1)
-//	{
-//		resetNonObstacles();
-//
-//		std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer> pq;
-//		for (int i = 0; i < m_grid.size(); i++)
-//		{
-//			if (nullptr != m_grid.at(i) && m_grid.at(i)->getType() != GridTile::TileType::Obstacle)
-//			{
-//				float estDist = thor::length(m_grid.at(m_goalIndex)->getRowCol() - m_grid.at(i)->getRowCol());
-//				//estDist *= 1.1f;
-//				m_grid.at(i)->setEstDist(estDist);
-//
-//				// init g[v] to infinity # dont YET know the distance to these nodes
-//				m_grid.at(i)->setCurrDist(std::numeric_limits<int>::max());
-//				m_grid.at(i)->setTotalDist(std::numeric_limits<int>::max());
-//			}
-//		}
-//
-//		// init g[s] to 0
-//		m_grid.at(m_startIndex)->setCurrDist(0);
-//		m_grid.at(m_startIndex)->setTotalDist(0);
-//		// mark s
-//		m_grid.at(m_startIndex)->setMarked(true);
-//
-//		// Add s to pq
-//		GridTile* current;
-//		pq.push(m_grid.at(m_startIndex));
-//
-//		// while the !pq.empty() && pq.top() != goal node
-//		while (!pq.empty() && pq.top() != m_grid.at(m_goalIndex))
-//		{
-//			current = pq.top();
-//			//pop from pq
-//			pq.pop();
-//			current->setVisited(true);
-//			f_visit(current);
-//
-//			//GridTile* closestChild = nullptr;
-//
-//			if (current->getIndex() == 16)
-//			{
-//				int test = 1337;
-//			}
-//
-//			/// <summary>
-//			/// TO-DO:
-//			///		1. Investigate why unneeded nodes are getting marked/expanded when path is more than 4 nodes
-//			/// </summary>
-//
-//			//for each child node c of pq.top() - 8 neighbours
-//			for (int i = 0; i < 8; i++)
-//			{
-//				GridManager::NeighbourIndex neighbour = static_cast<GridManager::NeighbourIndex>(i);
-//				int tileIndex = getNeighbourIndex(neighbour, current->getIndex());
-//				if (tileIndex > -1 && m_grid.at(tileIndex)->getType() != GridTile::TileType::Obstacle)
-//				{
-//					GridTile* child = m_grid.at(tileIndex);
-//
-//					//if child != previous(pq.top())
-//					if (child != current->getPrevious()) {
-//						//g(child) # g(c) is weight from current to child + distance of previous node
-//						int dist;
-//						switch (neighbour)
-//						{
-//						case GridManager::NeighbourIndex::LEFT:
-//						case GridManager::NeighbourIndex::RIGHT:
-//						case GridManager::NeighbourIndex::BOTTOM:
-//						case GridManager::NeighbourIndex::TOP:
-//							dist = 100;
-//							break;
-//						case GridManager::NeighbourIndex::TOP_LEFT:
-//						case GridManager::NeighbourIndex::TOP_RIGHT:
-//						case GridManager::NeighbourIndex::BOTTOM_LEFT:
-//						case GridManager::NeighbourIndex::BOTTOM_RIGHT:
-//							dist = 141;
-//							break;
-//						default:
-//							break;
-//						}
-//
-//						float childCurrDist = current->getCurrDist() + dist;//f(c)
-//						//let total child dist = h(child) + distance so far
-//						float totalChildDist = child->getEstDist() + childCurrDist;
-//
-//						if (totalChildDist < child->getTotalDist()) {
-//							// set current distance
-//							child->setCurrDist(childCurrDist);
-//
-//							//let f[c] = total distance
-//							child->setTotalDist(totalChildDist);
-//
-//							//if (closestChild)
-//							//{
-//							//	if (closestChild->getTotalDist() > child->getTotalDist())
-//							//	{
-//							//		closestChild = child;
-//							//	}
-//							//}
-//							//else
-//							//{
-//							//	closestChild = child;
-//							//}
-//
-//							// set previous pointer of child to pq.top()
-//							child->setPrevious(current);
-//						}//end if
-//
-//						if (!child->getMarked())
-//						{
-//							//mark child
-//							child->setMarked(true);
-//
-//							//add child to pq
-//							pq.push(child);
-//						}//end if Marked check
-//
-//					}//end if we're not checking parent
-//
-//				}//end if index and TileType check
-//
-//			}//end for
-//		}//end while
-//
-//		if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {
-//			GridTile* ptr = m_grid.at(m_goalIndex);
-//
-//			//add all nodes with previous to the path
-//			while (nullptr != ptr->getPrevious())
-//			{
-//				if (ptr != m_grid.at(m_goalIndex) && ptr != m_grid.at(m_startIndex))
-//				{
-//					ptr->setToPath();
-//				}
-//				ptr = ptr->getPrevious();
-//			}
-//		}
-//	}//end if
-//}
-
 void GridManager::reaAlgorithm()
 {
 	/* Pseudo code
@@ -605,69 +476,57 @@ void GridManager::reaAlgorithm()
 	return "no path is found";
 	*/
 
-	//Initialize();
+	//Initialise tiles
 	resetNonObstacles();
 
 	std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer> pq;
-	std::vector<int> neighbours;
-	if (insertS(neighbours))
+	pq.push(m_grid.at(m_startIndex));
+	GridTile* current = pq.top();
+	pq.pop();
+
+	std::vector<int> corners;
+	if (insertS(corners))
 	{
+		std::cout << "Goal has been found in first rectangle!" << std::endl;
 		return;
-	}
-	//while (!m_reaList.empty())
-	//{
-	//	//
-	//	if (expand(0))
-	//	{
-	//		return;
-	//	}
-	//}
-
-	return;
-}
-
-bool GridManager::insertS(std::vector<int>& t_neighbours)
-{
-	std::vector<int> temp;
-	GridManager::NeighbourIndex searchStartDirection;
-
-	sf::Vector2f vecToGoal = m_grid.at(m_goalIndex)->getPos() - m_grid.at(m_startIndex)->getPos();
-	if (std::abs(vecToGoal.x) >= std::abs(vecToGoal.y))
-	{
-		if (vecToGoal.x >= 0.f)
-		{
-			searchStartDirection = NeighbourIndex::RIGHT;
-		}
-		else
-		{
-			searchStartDirection = NeighbourIndex::LEFT;
-		}
 	}
 	else
 	{
-		if (vecToGoal.y >= 0.f)
+		//mark tiles in first rectangle
+		calculateNeighbours(corners, pq, current);
+		//clear out the vector of corners
+		corners.clear();
+	}
+	while (!pq.empty())
+	{
+		tempRender();
+		current = pq.top();
+		pq.pop();
+		if (!current->getVisited())
 		{
-			searchStartDirection = NeighbourIndex::BOTTOM;
-		}
-		else
-		{
-			searchStartDirection = NeighbourIndex::TOP;
+			if (expand(current->getIndex(), corners))
+			{
+				//goal has been found!
+				std::cout << "Goal has been found in a rectangle!" << std::endl;
+				return;
+			}
+			else
+			{
+				//mark tiles a rectangle
+				calculateNeighbours(corners, pq, current);
+				//clear out the vector of corners
+				corners.clear();
+			}
 		}
 	}
+	//if we get here, goal has not been found
+	std::cout << "Goal has *NOT* been found!" << std::endl;
+	return;
+}
 
-	getRectInDirection(temp, searchStartDirection, m_startIndex);
-
-
-
-	//std::vector<int> rect; //original rectangle expanded by Start node
-	//if ((std::find(rect.begin(), rect.end(), m_goalIndex) != rect.end()))
-	//{
-	//	return false;
-	//}
-	//for (const auto& )
-
-
-	return true;
+bool GridManager::insertS(std::vector<int>& t_corners)
+{
+	return getRectInDirection(t_corners, /*NeighbourIndex::TOP*/directionToGoal(m_startIndex), m_startIndex);
 }
 
 bool GridManager::successor()
@@ -684,6 +543,278 @@ float GridManager::getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2)
 	return D * (dx + dy) + (D2 - 2.f * D) * std::min(dx, dy);
 }
 
+void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current)
+{
+	//sort corner indexes so smallest index is top left and highest is bottom right
+	std::sort(t_corners.begin(), t_corners.end());
+
+	//set the corners for looping
+	int corner1 = t_corners[0], corner2 = t_corners[1], corner3 = t_corners[2], corner4 = t_corners[3];
+
+	if (m_grid.at(corner2)->getColRow().y == m_grid.at(corner3)->getColRow().y)
+	{
+		std::swap(corner2, corner3);
+	}
+
+	int index = corner1;
+	while (index <= corner4)
+	{
+		//mark all tiles of the rectangle as visited
+		m_grid.at(index)->setVisited(true);
+		index++;
+
+		if (index < MAX_TILES)
+		{
+			//if index went past the right most column
+			if (m_grid.at(index)->getColRow().x > m_grid.at(corner4)->getColRow().x)
+			{
+				//move to the left
+				index -= (m_grid.at(index)->getColRow().x - m_grid.at(corner1)->getColRow().x);
+				//move down a row
+				index += TILES_PER_ROW;
+			}
+			//if index went past the left most column
+			else if (m_grid.at(index)->getColRow().x < m_grid.at(corner1)->getColRow().x)
+			{
+				//move to the right
+				index += (m_grid.at(corner1)->getColRow().x - m_grid.at(index)->getColRow().x);
+			}
+		}
+	}
+
+	//handle neighbours
+	int tempNeighbourIndex = -1;
+	//check if there is a row available above and then handle those neighbours
+	if (corner1 > TILES_PER_ROW)
+	{
+		tempNeighbourIndex = getNeighbourIndex(NeighbourIndex::TOP, corner1);
+		bool loop = true;
+
+		while (loop)
+		{
+			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked() 
+				&& !m_grid.at(tempNeighbourIndex)->getVisited())
+			{
+				m_grid.at(tempNeighbourIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(tempNeighbourIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
+				m_grid.at(tempNeighbourIndex)->setPrevious(t_current);
+				m_grid.at(tempNeighbourIndex)->setMarked(true);
+				t_pq.push(m_grid.at(tempNeighbourIndex));
+			}
+			if (m_grid.at(tempNeighbourIndex)->getColRow().x < m_grid.at(corner4)->getColRow().x)
+			{
+				tempNeighbourIndex++;
+				if (tempNeighbourIndex >= MAX_TILES)
+				{
+					loop = false;
+				}
+			}
+			else
+			{
+				loop = false;
+			}
+		}
+	}
+	//check if there is a row available at the bottom and then handle those neighbours
+	if (corner4 < MAX_TILES - TILES_PER_ROW)
+	{
+		tempNeighbourIndex = getNeighbourIndex(NeighbourIndex::BOTTOM, corner3);
+		bool loop = true;
+
+		while (loop)
+		{
+			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked() 
+				&& !m_grid.at(tempNeighbourIndex)->getVisited())
+			{
+				m_grid.at(tempNeighbourIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(tempNeighbourIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
+				m_grid.at(tempNeighbourIndex)->setPrevious(t_current);
+				m_grid.at(tempNeighbourIndex)->setMarked(true);
+				t_pq.push(m_grid.at(tempNeighbourIndex));
+			}
+			if (m_grid.at(tempNeighbourIndex)->getColRow().x < m_grid.at(corner4)->getColRow().x)
+			{
+				tempNeighbourIndex++;
+				if (tempNeighbourIndex >= MAX_TILES)
+				{
+					loop = false;
+				}
+			}
+			else
+			{
+				loop = false;
+			}
+		}
+	}
+	//check if there is a column available to the left and then handle those neighbours
+	if (getNeighbourIndex(NeighbourIndex::LEFT, corner1) >= 0)
+	{
+		tempNeighbourIndex = getNeighbourIndex(NeighbourIndex::LEFT, corner1);
+		bool loop = true;
+
+		while (loop)
+		{
+			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked() 
+				&& !m_grid.at(tempNeighbourIndex)->getVisited())
+			{
+				m_grid.at(tempNeighbourIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(tempNeighbourIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
+				m_grid.at(tempNeighbourIndex)->setPrevious(t_current);
+				m_grid.at(tempNeighbourIndex)->setMarked(true);
+				t_pq.push(m_grid.at(tempNeighbourIndex));
+			}
+			if (m_grid.at(tempNeighbourIndex)->getColRow().y < m_grid.at(corner4)->getColRow().y)
+			{
+				tempNeighbourIndex += TILES_PER_ROW;
+				if (tempNeighbourIndex >= MAX_TILES)
+				{
+					loop = false;
+				}
+			}
+			else
+			{
+				loop = false;
+			}
+		}
+	}
+	//check if there is a column available to the right and then handle those neighbours
+	if (getNeighbourIndex(NeighbourIndex::RIGHT, corner4) >= 0)
+	{
+		tempNeighbourIndex = getNeighbourIndex(NeighbourIndex::RIGHT, corner2);
+		bool loop = true;
+
+		while (loop)
+		{
+			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked() 
+				&& !m_grid.at(tempNeighbourIndex)->getVisited())
+			{
+				m_grid.at(tempNeighbourIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(tempNeighbourIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
+				m_grid.at(tempNeighbourIndex)->setPrevious(t_current);
+				m_grid.at(tempNeighbourIndex)->setMarked(true);
+				t_pq.push(m_grid.at(tempNeighbourIndex));
+			}
+			if (m_grid.at(tempNeighbourIndex)->getColRow().y < m_grid.at(corner4)->getColRow().y)
+			{
+				tempNeighbourIndex += TILES_PER_ROW;
+				if (tempNeighbourIndex >= MAX_TILES)
+				{
+					loop = false;
+				}
+			}
+			else
+			{
+				loop = false;
+			}
+		}
+	}
+
+	//handle top left and right and bot left and right neighbours separately
+	int diagonalIndex = -1;
+	int cardinalDirection1 = -1;
+	int cardinalDirection2 = -1;
+
+	//top-left
+	cardinalDirection1 = getNeighbourIndex(NeighbourIndex::LEFT, corner1);
+	cardinalDirection2 = getNeighbourIndex(NeighbourIndex::TOP, corner1);
+	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle 
+		&& m_grid.at(cardinalDirection2)->getType() != GridTile::TileType::Obstacle)
+	{
+		diagonalIndex = getNeighbourIndex(NeighbourIndex::TOP_LEFT, corner1);
+		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited())
+		{
+			m_grid.at(diagonalIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(diagonalIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
+			m_grid.at(diagonalIndex)->setPrevious(t_current);
+			m_grid.at(diagonalIndex)->setMarked(true);
+			t_pq.push(m_grid.at(diagonalIndex));
+		}
+	}
+	//top-right
+	cardinalDirection1 = getNeighbourIndex(NeighbourIndex::RIGHT, corner2);
+	cardinalDirection2 = getNeighbourIndex(NeighbourIndex::TOP, corner2);
+	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle 
+		&& m_grid.at(cardinalDirection2)->getType() != GridTile::TileType::Obstacle)
+	{
+		diagonalIndex = getNeighbourIndex(NeighbourIndex::TOP_RIGHT, corner2);
+		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited())
+		{
+			m_grid.at(diagonalIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(diagonalIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
+			m_grid.at(diagonalIndex)->setPrevious(t_current);
+			m_grid.at(diagonalIndex)->setMarked(true);
+			t_pq.push(m_grid.at(diagonalIndex));
+		}
+	}
+	//bot-left
+	cardinalDirection1 = getNeighbourIndex(NeighbourIndex::LEFT, corner3);
+	cardinalDirection2 = getNeighbourIndex(NeighbourIndex::BOTTOM, corner3);
+	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle 
+		&& m_grid.at(cardinalDirection2)->getType() != GridTile::TileType::Obstacle)
+	{
+		diagonalIndex = getNeighbourIndex(NeighbourIndex::BOTTOM_LEFT, corner3);
+		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited())
+		{
+			m_grid.at(diagonalIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(diagonalIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
+			m_grid.at(diagonalIndex)->setPrevious(t_current);
+			m_grid.at(diagonalIndex)->setMarked(true);
+			t_pq.push(m_grid.at(diagonalIndex));
+		}
+	}
+	//bot-right
+	cardinalDirection1 = getNeighbourIndex(NeighbourIndex::RIGHT, corner4);
+	cardinalDirection2 = getNeighbourIndex(NeighbourIndex::BOTTOM, corner4);
+	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle 
+		&& m_grid.at(cardinalDirection2)->getType() != GridTile::TileType::Obstacle)
+	{
+		diagonalIndex = getNeighbourIndex(NeighbourIndex::BOTTOM_RIGHT, corner4);
+		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited())
+		{
+			m_grid.at(diagonalIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(diagonalIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
+			m_grid.at(diagonalIndex)->setPrevious(t_current);
+			m_grid.at(diagonalIndex)->setMarked(true);
+			t_pq.push(m_grid.at(diagonalIndex));
+		}
+	}
+}
+
+/// <summary>
+/// Calculates direction in which a rectangle should expand in
+/// </summary>
+/// <param name="t_tileIndex"></param>
+/// <returns></returns>
+GridManager::NeighbourIndex GridManager::directionToGoal(int t_tileIndex)
+{
+	GridManager::NeighbourIndex direction;
+
+	sf::Vector2f vecToGoal = m_grid.at(m_goalIndex)->getPos() - m_grid.at(t_tileIndex)->getPos();
+	if (std::abs(vecToGoal.x) >= std::abs(vecToGoal.y))
+	{
+		if (vecToGoal.x >= 0.f)
+		{
+			direction = NeighbourIndex::RIGHT;
+		}
+		else
+		{
+			direction = NeighbourIndex::LEFT;
+		}
+	}
+	else
+	{
+		if (vecToGoal.y >= 0.f)
+		{
+			direction = NeighbourIndex::BOTTOM;
+		}
+		else
+		{
+			direction = NeighbourIndex::TOP;
+		}
+	}
+
+	return direction;
+}
+
+/// <summary>
+/// Function to expand a rectangle in a given direction from a origin index
+/// </summary>
+/// <param name="t_rectBoundary">vector container for 4 corners of the rect IF goal is not found</param>
+/// <param name="t_direction">direction to expand the rectangle in</param>
+/// <param name="t_origin">origin index to expand from</param>
+/// <returns>true if goal has been found in rectangle, false if not</returns>
 bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin)
 {
 	int indexInDirection = -1;
@@ -693,11 +824,11 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 
 	indexInDirection = getNeighbourIndex(t_direction, t_origin);
 	//if there is nothing above the starting point
-	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle)
+	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle && !m_grid.at(indexInDirection)->getVisited())
 	{
 		//expand in the given direction
 		int tempIndex = indexInDirection;
-		while (tempIndex >= 0 && m_grid.at(tempIndex)->getType() != GridTile::TileType::Obstacle)
+		while (tempIndex >= 0 && m_grid.at(tempIndex)->getType() != GridTile::TileType::Obstacle && !goalFound)
 		{
 			//we're looping again so we have a new top index
 			indexInDirection = tempIndex;
@@ -726,13 +857,33 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 			else
 			{
 				goalFound = true;
+
+				//since goal has been immediately found, just set the limits to 1
+				switch (t_direction)
+				{
+				case GridManager::NeighbourIndex::LEFT:
+				case GridManager::NeighbourIndex::RIGHT:
+					limitInDirection = m_grid.at(tempIndex)->getColRow().x;
+					sideLimit1 = m_grid.at(m_goalIndex)->getColRow().y;
+					sideLimit2 = m_grid.at(m_goalIndex)->getColRow().y;
+					break;
+				case GridManager::NeighbourIndex::TOP:
+				case GridManager::NeighbourIndex::BOTTOM:
+					limitInDirection = m_grid.at(tempIndex)->getColRow().y;
+					sideLimit1 = m_grid.at(m_goalIndex)->getColRow().x;
+					sideLimit2 = m_grid.at(m_goalIndex)->getColRow().x;
+					break;
+				default:
+					break;
+				}
+				//break out of the loop
 				break;
 			}
 		}
 	}
 	else
 	{
-		//we cant expand in that direction, just expand sideways
+		//we cant expand in that direction, just expand sideways to form a rectangle 1 tall/wide
 		switch (t_direction)
 		{
 		case GridManager::NeighbourIndex::LEFT:
@@ -773,18 +924,25 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 	t_rectBoundary.push_back(corner1);
 	t_rectBoundary.push_back(corner2);
 
-	if (m_startIndex != corner1 && m_goalIndex != corner1)
+	if (corner1 >= 0 && corner2 >= 0)
 	{
-		m_grid.at(corner1)->setToPath();
+		if (m_startIndex != corner1 && m_goalIndex != corner1)
+		{
+			m_grid.at(corner1)->setToPath();
+		}
+		if (m_startIndex != corner2 && m_goalIndex != corner2)
+		{
+			m_grid.at(corner2)->setToPath();
+		}
 	}
-	if (m_startIndex != corner2 && m_goalIndex != corner2)
+	else
 	{
-		m_grid.at(corner2)->setToPath();
+		throw std::invalid_argument("one of the corners is an invalid index!");
 	}
 
-	std::cout << "Limit in direction: " << limitInDirection << std::endl;
-	std::cout << "Side Limit 1: " << sideLimit1 << std::endl;
-	std::cout << "Side Limit 2: " << sideLimit2 << std::endl;
+	//std::cout << "Limit in direction: " << limitInDirection << std::endl;
+	//std::cout << "Side Limit 1: " << sideLimit1 << std::endl;
+	//std::cout << "Side Limit 2: " << sideLimit2 << std::endl;
 
 	if (!goalFound)
 	{
@@ -812,7 +970,7 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 			throw std::invalid_argument("received bad direction value");
 			break;
 		}
-		if (startPointIndex <= -1 || m_grid.at(startPointIndex)->getType() == GridTile::TileType::Obstacle)
+		if (startPointIndex < 0 || m_grid.at(startPointIndex)->getType() == GridTile::TileType::Obstacle || m_grid.at(startPointIndex)->getVisited())
 		{
 			startPointIndex = t_origin;
 		}
@@ -836,7 +994,7 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 
 	//indexInDirection = getNeighbourIndex(t_direction, t_origin);
 	//if there is nothing above the starting point
-	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle)
+	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle && !m_grid.at(indexInDirection)->getVisited())
 	{
 		//expand in the given direction
 		int tempIndex = indexInDirection;
@@ -913,19 +1071,53 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 			}
 		}
 	}
+	//else
+	//{
+	//	//we cant expand in the main direction, just expand sideways
+	//	int tempLimit1 = -1, tempLimit2 = -1;
+	//	switch (t_direction)
+	//	{
+	//	case GridManager::NeighbourIndex::LEFT:
+	//	case GridManager::NeighbourIndex::RIGHT:
+	//		limitInDirection = m_grid.at(t_origin)->getColRow().x;
+	//		
+	//		tempLimit1 = getSideBoundary(NeighbourIndex::TOP, t_origin, sideLimit1, t_goalFound);
+	//		tempLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, t_origin, sideLimit2, t_goalFound);
+
+	//		if (tempLimit1 > sideLimit1)
+	//		{
+	//			breakout = true;
+	//		}
+	//		if (tempLimit2 < sideLimit2)
+	//		{
+	//			breakout = true;
+	//		}
+
+	//		sideLimit1 = getSideBoundary(NeighbourIndex::TOP, t_origin, sideLimit1, t_goalFound);
+	//		sideLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, t_origin, sideLimit2, t_goalFound);
+	//		break;
+	//	case GridManager::NeighbourIndex::TOP:
+	//	case GridManager::NeighbourIndex::BOTTOM:
+	//		limitInDirection = m_grid.at(t_origin)->getColRow().y;
+	//		sideLimit1 = getSideBoundary(NeighbourIndex::LEFT, t_origin, sideLimit1, t_goalFound);
+	//		sideLimit2 = getSideBoundary(NeighbourIndex::RIGHT, t_origin, sideLimit2, t_goalFound);
+	//		break;
+	//	default:
+	//		throw std::invalid_argument("received bad direction value");
+	//		break;
+	//	}
+	//}
 
 	int corner1, corner2, tempSideLimit1, tempSideLimit2, tempDirectionLimit;
 	if (oppositeLimit1 >= 0 && oppositeLimit2 >= 0)
 	{
 		tempSideLimit1 = oppositeLimit1;
 		tempSideLimit2 = oppositeLimit2;
-		//tempDirectionLimit = limitInDirection;
 	}
 	else
 	{
 		tempSideLimit1 = sideLimit1;
 		tempSideLimit2 = sideLimit2;
-		//tempDirectionLimit = t_di
 	}
 	switch (t_direction)
 	{
@@ -946,18 +1138,25 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 	t_rectBoundary.push_back(corner1);
 	t_rectBoundary.push_back(corner2);
 
-	if (m_startIndex != corner1 && m_goalIndex != corner1)
+	if (corner1 >= 0 && corner2 >= 0)
 	{
-		m_grid.at(corner1)->setToPath();
+		if (m_startIndex != corner1 && m_goalIndex != corner1)
+		{
+			m_grid.at(corner1)->setToPath();
+		}
+		if (m_startIndex != corner2 && m_goalIndex != corner2)
+		{
+			m_grid.at(corner2)->setToPath();
+		}
 	}
-	if (m_startIndex != corner2 && m_goalIndex != corner2)
+	else
 	{
-		m_grid.at(corner2)->setToPath();
+		throw std::invalid_argument("one of the corners is an invalid index!");
 	}
 
-	std::cout << "Limit in opposite direction: " << limitInDirection << std::endl;
-	std::cout << "Side Limit 1: " << tempSideLimit1 << std::endl;
-	std::cout << "Side Limit 2: " << tempSideLimit2 << std::endl;
+	//std::cout << "Limit in opposite direction: " << limitInDirection << std::endl;
+	//std::cout << "Side Limit 1: " << tempSideLimit1 << std::endl;
+	//std::cout << "Side Limit 2: " << tempSideLimit2 << std::endl;
 }
 
 int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound)
@@ -968,11 +1167,13 @@ int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin,
 	int tempPreviousDirectionIndex = t_expandOrigin;
 	int limit = t_currentLimit;
 
-	while (expand)
+	//loop while (expand = true AND t_goalFound = false)
+	while (expand && !t_goalFound)
 	{
 		tempDirectionIndex = getNeighbourIndex(t_direction, tempDirectionIndex);
-		if (tempDirectionIndex >= 0 && m_grid.at(tempDirectionIndex)->getType() != GridTile::TileType::Obstacle)
+		if (tempDirectionIndex >= 0 && m_grid.at(tempDirectionIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempDirectionIndex)->getVisited())
 		{
+			//if limit is already set
 			if (limit >= 0)
 			{
 				switch (t_direction)
@@ -1013,34 +1214,22 @@ int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin,
 					break;
 				}
 			}
-			tempPreviousDirectionIndex = tempDirectionIndex;
+			//if we got here, keep moving and try to find first limit
+			tempPreviousDirectionIndex = tempDirectionIndex;//set previous valid tile
+			//if tile we just checked is the goal
 			if (m_grid.at(tempPreviousDirectionIndex)->getType() == GridTile::TileType::Goal)
 			{
+				//stop looping
 				t_goalFound = true;
 				expand = false;
 			}
 		}
 		else
 		{
-			//if limit is unset, set it
-			if (limit < 0)
-			{
-				switch (t_direction)
-				{
-				case GridManager::NeighbourIndex::LEFT:
-				case GridManager::NeighbourIndex::RIGHT:
-					limit = m_grid.at(tempPreviousDirectionIndex)->getColRow().x;
-					break;
-				case GridManager::NeighbourIndex::TOP:
-				case GridManager::NeighbourIndex::BOTTOM:
-					limit = m_grid.at(tempPreviousDirectionIndex)->getColRow().y;
-					break;
-				default:
-					throw std::invalid_argument("received bad direction value");
-					break;
-				}
-			}
-			else
+			expand = false; // stop expanding
+
+			//if limit is not set
+			if (limit >= 0)
 			{
 				switch (t_direction)
 				{
@@ -1085,14 +1274,36 @@ int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin,
 					break;
 				}
 			}
-			expand = false; // stop expanding
+		}
+	}
+
+	//incase limit is unset, set it
+	if (limit < 0)
+	{
+		//here tempPreviousDirectionIndex is either
+		//equal to t_expandOrigin
+		//or a new valid index for a limit
+		switch (t_direction)
+		{
+		case GridManager::NeighbourIndex::LEFT:
+		case GridManager::NeighbourIndex::RIGHT:
+			limit = m_grid.at(tempPreviousDirectionIndex)->getColRow().x;
+			break;
+		case GridManager::NeighbourIndex::TOP:
+		case GridManager::NeighbourIndex::BOTTOM:
+			limit = m_grid.at(tempPreviousDirectionIndex)->getColRow().y;
+			break;
+		default:
+			throw std::invalid_argument("received bad direction value");
+			break;
 		}
 	}
 
 	return limit;
 }
 
-bool GridManager::expand(int t_cbn)
+bool GridManager::expand(int t_cbn, std::vector<int>& t_corners)
 {
-	return true;
+	//std::cout << "Expanding tile: " << std::to_string(t_cbn) << std::endl;
+	return getRectInDirection(t_corners, /*NeighbourIndex::TOP*/directionToGoal(t_cbn), t_cbn);
 }
