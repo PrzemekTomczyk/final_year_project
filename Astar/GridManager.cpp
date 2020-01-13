@@ -48,6 +48,17 @@ void GridManager::render()
 	}
 }
 
+void GridManager::tempRender()
+{
+	//m_window.clear(sf::Color::Black);
+	m_window.draw(m_placeModeTxt);
+	for (int i = 0; i < m_grid.size(); i++)
+	{
+		m_grid.at(i)->render(m_window);
+	}
+	m_window.display();
+}
+
 void GridManager::handleInput()
 {
 	if (m_window.hasFocus())
@@ -477,6 +488,7 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 		// while the !pq.empty() && pq.top() != goal node
 		while (!pq.empty() && pq.top() != m_grid.at(m_goalIndex))
 		{
+			tempRender();
 			current = pq.top();
 			//pop from pq
 			pq.pop();
