@@ -52,7 +52,7 @@ void GridManager::render()
 
 void GridManager::tempRender()
 {
-	m_window.clear(sf::Color::Black);
+	//m_window.clear(sf::Color::Black);
 	m_window.draw(m_placeModeTxt);
 	for (int i = 0; i < m_grid.size(); i++)
 	{
@@ -499,11 +499,17 @@ void GridManager::reaAlgorithm()
 	}
 	while (!pq.empty())
 	{
-		tempRender();
 		current = pq.top();
+		if (current == m_grid.at(m_goalIndex))
+		{
+			//goal has been found!
+			std::cout << "Goal has been found in a rectangle!" << std::endl;
+			return;
+		}
 		pq.pop();
 		if (!current->getVisited())
 		{
+			tempRender();
 			if (expand(current->getIndex(), corners))
 			{
 				//goal has been found!
@@ -824,7 +830,7 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 
 	indexInDirection = getNeighbourIndex(t_direction, t_origin);
 	//if there is nothing above the starting point
-	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle && !m_grid.at(indexInDirection)->getVisited())
+	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle && !m_grid.at(indexInDirection)->getVisited() && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Goal)
 	{
 		//expand in the given direction
 		int tempIndex = indexInDirection;
@@ -881,6 +887,10 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 			}
 		}
 	}
+	else if (m_grid.at(indexInDirection)->getType() == GridTile::TileType::Goal)
+	{
+		goalFound = true;
+	}
 	else
 	{
 		//we cant expand in that direction, just expand sideways to form a rectangle 1 tall/wide
@@ -935,6 +945,11 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 			m_grid.at(corner2)->setToPath();
 		}
 	}
+	else if (goalFound)
+	{
+		corner1 = m_goalIndex;
+		corner2 = m_goalIndex;
+	}
 	else
 	{
 		throw std::invalid_argument("one of the corners is an invalid index!");
@@ -976,10 +991,10 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 		}
 		getRectInOpposite(t_rectBoundary, oppositeDirection, startPointIndex, sideLimit1, sideLimit2, goalFound);
 	}
-	if (goalFound)
-	{
-		std::cout << "Goal found!" << std::endl;
-	}
+	//if (goalFound)
+	//{
+	//	std::cout << "Goal found!" << std::endl;
+	//}
 
 	return goalFound;
 }

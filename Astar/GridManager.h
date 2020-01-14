@@ -37,6 +37,7 @@ public:
 	~GridManager();
 	bool update();
 	void render();
+	void tempRender();
 	void init(float t_textOffset);
 	int getStartIndex();
 	int getGoalIndex();
