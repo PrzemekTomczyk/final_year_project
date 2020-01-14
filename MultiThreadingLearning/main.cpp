@@ -10,7 +10,7 @@
 
 int main()
 {
-	// code to demo 2 threads sharing a variable //for some bizzare reason hangs "randomly" when ran
+	// code to demo 2 threads sharing a variable
 	{
 		int accountAmount = 0;
 		boost::mutex coutGuard;
