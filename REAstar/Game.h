@@ -28,29 +28,22 @@ public:
 
 private:
 	const int TEST_TILE_AMOUNT = 140;
-	const int SANDBOX_TILE_AMOUNT = 10000;
+	const int SANDBOX_TILE_AMOUNT = 2500;
 
 	const int TEST_LAYOUT_TILES_PER_ROW = 10;
 	const int TEST_LAYOUT_ROWS = 14;
 
-	const int SANDBOX_LAYOUT_TILES_PER_ROW = 100;
-	const int SANDBOX_LAYOUT_ROWS = 100;
+	const int SANDBOX_LAYOUT_TILES_PER_ROW = 50;
+	const int SANDBOX_LAYOUT_ROWS = 50;
 
 	// functions
 	void processEvents();
 	void update(sf::Time t_deltaTime);
 	void render();
 	void processScreenEvents();
-	void handleGridPathfinding();
 	void setupGrid();
-	std::string getStringIndex(int t_index);
-	int getNumIndex(std::string t_index);
 
 	void initLayout();
-
-	std::map<std::string, int> m_nodeMap;
-	std::string m_start;
-	std::string m_end;
 
 	// variables
 	sf::RenderWindow m_window; // main SFML window
@@ -59,12 +52,10 @@ private:
 	bool m_exitGame; // control exiting game
 	bool m_loadLayout = false;
 
-	//GridManager m_grid;
 	GridManager* m_grid;
 	GridLayout m_layout;
 	//text
 	sf::Text m_tooltipText;
 	sf::RectangleShape m_textBackground;
-
 };
 

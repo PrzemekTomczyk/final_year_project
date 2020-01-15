@@ -9,6 +9,8 @@
 #include <functional>
 #include <Thor/Time.hpp>
 #include <stdexcept>
+#include <chrono>
+#include <thread>
 
 class TileComparer
 {
@@ -36,15 +38,13 @@ class GridManager
 public:
 	GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_maxTiles, int t_noOfRows, int t_tilesPerRow);
 	~GridManager();
-	bool update();
+	void update();
 	void render();
-	void tempRender();
+	void reaGridRedraw();
 	void init(float t_textOffset);
 	int getStartIndex();
 	int getGoalIndex();
-	void updateNotRequired();
 	void setToPath(int t_index);
-	void resetPath();
 	void reaAlgorithm();
 
 private:
@@ -55,11 +55,13 @@ private:
 	void handleRightClick(sf::Vector2i t_mousePos);
 	void handleMiddleClick(sf::Vector2i t_mousePos);
 	void resetGrid();
-	void resetNonObstacles();
+	void resetNonObstacles();	
 	int getNeighbourIndex(NeighbourIndex t_neighbour, int t_index);
 	void checkIfStartRemoved(int t_tileClicked);
 	int getClickedTileIndex(sf::Vector2i t_mousePos);
 	void setTestLayout();
+	void addLine(sf::Vector2f t_p1, sf::Vector2f t_p2);
+	void backTrack();
 
 	//#######################
 	//rea* functions
@@ -67,7 +69,7 @@ private:
 	bool expand(int t_cbn, std::vector<int>& t_corners);
 	bool successor();
 	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
-	void calculateNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current);
+	void calculateRectangleNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current);
 	GridManager::NeighbourIndex directionToGoal(int t_tileIndex);
 
 	//functions for finding rectangle boundaries
@@ -115,12 +117,13 @@ private:
 	bool m_changedGrid = false;
 	bool m_updateRequired = false;
 	bool m_deleteMode = false;
+	bool m_redrawNeeded = false;
 
 	thor::Timer m_stepTimer;
 
 	//ints
 	int m_goalIndex = -1;
 	int m_startIndex = -1;
+
+	std::vector<sf::Vertex> m_lines;
 };
-
-

@@ -29,34 +29,46 @@ GridManager::~GridManager()
 	m_grid.clear();
 }
 
-bool GridManager::update()
+void GridManager::update()
 {
 	handleInput();
 
-	if (m_startIndex > -1 && m_goalIndex > -1 && m_updateRequired)
+	if (!m_redrawNeeded && m_updateRequired && m_startIndex > -1 && m_goalIndex > -1)
 	{
-		return true;
+		m_updateRequired = false;
+
+		reaAlgorithm();
 	}
-	return false;
+	else if (m_startIndex == -1 || m_goalIndex == -1 && !m_lines.empty())
+	{
+		m_lines.clear();
+	}
 }
 
 
 void GridManager::render()
 {
+	m_redrawNeeded = false;
 	m_window.draw(m_placeModeTxt);
 	for (int i = 0; i < m_grid.size(); i++)
 	{
 		m_grid.at(i)->render(m_window);
 	}
+
+	for (int i = 0; i < m_lines.size(); i++)
+	{
+		m_window.draw(&m_lines[0], m_lines.size(), sf::Lines);
+	}
 }
 
-void GridManager::tempRender()
+void GridManager::reaGridRedraw()
 {
-	//m_window.clear(sf::Color::Black);
-	m_window.draw(m_placeModeTxt);
 	for (int i = 0; i < m_grid.size(); i++)
 	{
-		m_grid.at(i)->render(m_window);
+		//if (m_grid.at(i)->getMarked() || m_grid.at(i)->getVisited())
+		{
+			m_grid.at(i)->render(m_window);
+		}
 	}
 	m_window.display();
 }
@@ -136,15 +148,11 @@ void GridManager::handleMouse()
 	else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
 	{
 		m_rightBtn = false;
-		if (m_rightBtn && m_updateRequired)
-		{
-			m_updateRequired = false;
-			resetNonObstacles();
-			if (m_goalIndex >= 0)
-			{
-				//doBrushfireCalc(m_goalIndex);
-			}
-		}
+		//if (m_rightBtn && m_updateRequired)
+		//{
+		//	m_updateRequired = false;
+		//	resetNonObstacles();
+		//}
 	}
 
 	//handle mmb
@@ -158,11 +166,11 @@ void GridManager::handleMouse()
 		if (m_middleBtn && m_changedGrid)
 		{
 			resetNonObstacles();
+			m_changedGrid = false;
 			m_updateRequired = true;
 		}
 		m_middleBtn = false;
 	}
-
 }
 
 void GridManager::handleLeftClick(sf::Vector2i t_mousePos)
@@ -186,6 +194,7 @@ void GridManager::handleLeftClick(sf::Vector2i t_mousePos)
 			m_goalIndex = tileIndex;
 
 			resetNonObstacles();
+			m_redrawNeeded = true;
 		}
 	}
 }
@@ -205,6 +214,7 @@ void GridManager::handleRightClick(sf::Vector2i t_mousePos)
 			}
 			m_grid.at(tileIndex)->setToStart();
 			m_startIndex = tileIndex;
+			m_redrawNeeded = true;
 		}
 	}
 }
@@ -227,7 +237,7 @@ void GridManager::handleMiddleClick(sf::Vector2i t_mousePos)
 		m_grid.at(tileIndex)->reset();
 		m_changedGrid = true;
 	}
-	else if (!m_deleteMode && (m_grid.at(tileIndex)->getType() != GridTile::TileType::Obstacle || m_startIndex != tileIndex || m_goalIndex != tileIndex))
+	else if (!m_deleteMode)
 	{
 		if (m_startIndex == tileIndex)
 		{
@@ -378,22 +388,12 @@ int GridManager::getGoalIndex()
 	return m_goalIndex;
 }
 
-void GridManager::updateNotRequired()
-{
-	m_updateRequired = false;
-}
-
 void GridManager::setToPath(int t_index)
 {
 	if (m_grid.at(t_index)->getType() != GridTile::TileType::Goal && m_grid.at(t_index)->getType() != GridTile::TileType::Start)
 	{
 		m_grid.at(t_index)->setToPath();
 	}
-}
-
-void GridManager::resetPath()
-{
-	resetNonObstacles();
 }
 
 void GridManager::setTestLayout()
@@ -417,6 +417,47 @@ void GridManager::setTestLayout()
 	m_grid.at(104)->setToObstacle();
 	m_grid.at(105)->setToObstacle();
 	m_grid.at(106)->setToObstacle();
+}
+
+/// <summary>
+/// Adds a vertex to a vector
+/// </summary>
+/// <param name="t_p1">position of vertex 1</param>
+/// <param name="t_p2">position of vertex 2</param>
+void GridManager::addLine(sf::Vector2f t_p1, sf::Vector2f t_p2)
+{
+	sf::Vertex vertex1;
+	sf::Vertex vertex2;
+
+	vertex1 = sf::Vertex(t_p1);
+	vertex2 = sf::Vertex(t_p2);
+
+	m_lines.push_back(vertex1);
+	m_lines.push_back(vertex2);
+}
+
+void GridManager::backTrack()
+{
+	if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {
+		GridTile* ptr = m_grid.at(m_goalIndex);
+
+		//add all nodes with previous to the path
+		while (nullptr != ptr->getPrevious())
+		{
+			if (ptr != m_grid.at(m_goalIndex) && ptr != m_grid.at(m_startIndex))
+			{
+				ptr->setToPath();
+			}
+
+			addLine(ptr->getPos(), ptr->getPrevious()->getPos());
+
+			ptr = ptr->getPrevious();
+		}
+	}
+	else
+	{
+		throw std::invalid_argument("goal's previous ptr not set!");
+	}
 }
 
 void GridManager::init(float t_textOffset)
@@ -457,6 +498,8 @@ void GridManager::init(float t_textOffset)
 
 void GridManager::reaAlgorithm()
 {
+	std::cout << "#### Finding path ####" << std::endl;
+
 	/* Pseudo code
 	Initialize();
 
@@ -477,6 +520,7 @@ void GridManager::reaAlgorithm()
 	*/
 
 	//Initialise tiles
+	m_lines.clear();
 	resetNonObstacles();
 
 	std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer> pq;
@@ -488,15 +532,19 @@ void GridManager::reaAlgorithm()
 	if (insertS(corners))
 	{
 		std::cout << "Goal has been found in first rectangle!" << std::endl;
+		backTrack();
+
 		return;
 	}
 	else
 	{
 		//mark tiles in first rectangle
-		calculateNeighbours(corners, pq, current);
+		calculateRectangleNeighbours(corners, pq, current);
 		//clear out the vector of corners
 		corners.clear();
 	}
+	reaGridRedraw();
+
 	while (!pq.empty())
 	{
 		current = pq.top();
@@ -504,25 +552,29 @@ void GridManager::reaAlgorithm()
 		{
 			//goal has been found!
 			std::cout << "Goal has been found in a rectangle!" << std::endl;
+			backTrack(); 
 			return;
 		}
 		pq.pop();
 		if (!current->getVisited())
 		{
-			tempRender();
+			std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
 			if (expand(current->getIndex(), corners))
 			{
 				//goal has been found!
 				std::cout << "Goal has been found in a rectangle!" << std::endl;
+				backTrack();
 				return;
 			}
 			else
 			{
 				//mark tiles a rectangle
-				calculateNeighbours(corners, pq, current);
+				calculateRectangleNeighbours(corners, pq, current);
 				//clear out the vector of corners
 				corners.clear();
 			}
+			reaGridRedraw();
 		}
 	}
 	//if we get here, goal has not been found
@@ -549,7 +601,7 @@ float GridManager::getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2)
 	return D * (dx + dy) + (D2 - 2.f * D) * std::min(dx, dy);
 }
 
-void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current)
+void GridManager::calculateRectangleNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current)
 {
 	//sort corner indexes so smallest index is top left and highest is bottom right
 	std::sort(t_corners.begin(), t_corners.end());
@@ -588,9 +640,19 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 		}
 	}
 
+	/// <summary>
+	/// TO-DO:
+	/// 1. For each side of neighbours, check if neighbour has free cardinal tiles
+	/// if not, then set the previous ptr for that neigbour to be the tile that added
+	/// him
+	/// 
+	/// 2.
+	/// </summary>
+
 	//handle neighbours
 	int tempNeighbourIndex = -1;
 	//check if there is a row available above and then handle those neighbours
+	//ABOVE
 	if (corner1 > TILES_PER_ROW)
 	{
 		tempNeighbourIndex = getNeighbourIndex(NeighbourIndex::TOP, corner1);
@@ -598,8 +660,8 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 
 		while (loop)
 		{
-			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked() 
-				&& !m_grid.at(tempNeighbourIndex)->getVisited())
+			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked()
+				&& !m_grid.at(tempNeighbourIndex)->getVisited() && tempNeighbourIndex != m_startIndex)
 			{
 				m_grid.at(tempNeighbourIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(tempNeighbourIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
 				m_grid.at(tempNeighbourIndex)->setPrevious(t_current);
@@ -621,6 +683,7 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 		}
 	}
 	//check if there is a row available at the bottom and then handle those neighbours
+	//BELOW
 	if (corner4 < MAX_TILES - TILES_PER_ROW)
 	{
 		tempNeighbourIndex = getNeighbourIndex(NeighbourIndex::BOTTOM, corner3);
@@ -628,8 +691,8 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 
 		while (loop)
 		{
-			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked() 
-				&& !m_grid.at(tempNeighbourIndex)->getVisited())
+			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked()
+				&& !m_grid.at(tempNeighbourIndex)->getVisited() && tempNeighbourIndex != m_startIndex)
 			{
 				m_grid.at(tempNeighbourIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(tempNeighbourIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
 				m_grid.at(tempNeighbourIndex)->setPrevious(t_current);
@@ -651,6 +714,7 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 		}
 	}
 	//check if there is a column available to the left and then handle those neighbours
+	//LEFT
 	if (getNeighbourIndex(NeighbourIndex::LEFT, corner1) >= 0)
 	{
 		tempNeighbourIndex = getNeighbourIndex(NeighbourIndex::LEFT, corner1);
@@ -658,8 +722,8 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 
 		while (loop)
 		{
-			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked() 
-				&& !m_grid.at(tempNeighbourIndex)->getVisited())
+			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked()
+				&& !m_grid.at(tempNeighbourIndex)->getVisited() && tempNeighbourIndex != m_startIndex)
 			{
 				m_grid.at(tempNeighbourIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(tempNeighbourIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
 				m_grid.at(tempNeighbourIndex)->setPrevious(t_current);
@@ -681,6 +745,7 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 		}
 	}
 	//check if there is a column available to the right and then handle those neighbours
+	//RIGHT
 	if (getNeighbourIndex(NeighbourIndex::RIGHT, corner4) >= 0)
 	{
 		tempNeighbourIndex = getNeighbourIndex(NeighbourIndex::RIGHT, corner2);
@@ -688,8 +753,8 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 
 		while (loop)
 		{
-			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked() 
-				&& !m_grid.at(tempNeighbourIndex)->getVisited())
+			if (m_grid.at(tempNeighbourIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(tempNeighbourIndex)->getMarked()
+				&& !m_grid.at(tempNeighbourIndex)->getVisited() && tempNeighbourIndex != m_startIndex)
 			{
 				m_grid.at(tempNeighbourIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(tempNeighbourIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
 				m_grid.at(tempNeighbourIndex)->setPrevious(t_current);
@@ -719,11 +784,12 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 	//top-left
 	cardinalDirection1 = getNeighbourIndex(NeighbourIndex::LEFT, corner1);
 	cardinalDirection2 = getNeighbourIndex(NeighbourIndex::TOP, corner1);
-	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle 
+	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle
 		&& m_grid.at(cardinalDirection2)->getType() != GridTile::TileType::Obstacle)
 	{
 		diagonalIndex = getNeighbourIndex(NeighbourIndex::TOP_LEFT, corner1);
-		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited())
+		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited()
+			&& tempNeighbourIndex != m_startIndex)
 		{
 			m_grid.at(diagonalIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(diagonalIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
 			m_grid.at(diagonalIndex)->setPrevious(t_current);
@@ -734,11 +800,12 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 	//top-right
 	cardinalDirection1 = getNeighbourIndex(NeighbourIndex::RIGHT, corner2);
 	cardinalDirection2 = getNeighbourIndex(NeighbourIndex::TOP, corner2);
-	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle 
+	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle
 		&& m_grid.at(cardinalDirection2)->getType() != GridTile::TileType::Obstacle)
 	{
 		diagonalIndex = getNeighbourIndex(NeighbourIndex::TOP_RIGHT, corner2);
-		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited())
+		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited()
+			&& tempNeighbourIndex != m_startIndex)
 		{
 			m_grid.at(diagonalIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(diagonalIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
 			m_grid.at(diagonalIndex)->setPrevious(t_current);
@@ -749,11 +816,12 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 	//bot-left
 	cardinalDirection1 = getNeighbourIndex(NeighbourIndex::LEFT, corner3);
 	cardinalDirection2 = getNeighbourIndex(NeighbourIndex::BOTTOM, corner3);
-	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle 
+	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle
 		&& m_grid.at(cardinalDirection2)->getType() != GridTile::TileType::Obstacle)
 	{
 		diagonalIndex = getNeighbourIndex(NeighbourIndex::BOTTOM_LEFT, corner3);
-		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited())
+		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited()
+			&& tempNeighbourIndex != m_startIndex)
 		{
 			m_grid.at(diagonalIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(diagonalIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
 			m_grid.at(diagonalIndex)->setPrevious(t_current);
@@ -764,11 +832,12 @@ void GridManager::calculateNeighbours(std::vector<int>& t_corners, std::priority
 	//bot-right
 	cardinalDirection1 = getNeighbourIndex(NeighbourIndex::RIGHT, corner4);
 	cardinalDirection2 = getNeighbourIndex(NeighbourIndex::BOTTOM, corner4);
-	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle 
+	if (cardinalDirection1 >= 0 && cardinalDirection2 >= 0 && m_grid.at(cardinalDirection1)->getType() != GridTile::TileType::Obstacle
 		&& m_grid.at(cardinalDirection2)->getType() != GridTile::TileType::Obstacle)
 	{
 		diagonalIndex = getNeighbourIndex(NeighbourIndex::BOTTOM_RIGHT, corner4);
-		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited())
+		if (m_grid.at(diagonalIndex)->getType() != GridTile::TileType::Obstacle && !m_grid.at(diagonalIndex)->getMarked() && !m_grid.at(tempNeighbourIndex)->getVisited()
+			&& tempNeighbourIndex != m_startIndex)
 		{
 			m_grid.at(diagonalIndex)->setEstDist(getOctileDist((sf::Vector2f)m_grid.at(diagonalIndex)->getColRow(), (sf::Vector2f)m_grid.at(m_goalIndex)->getColRow()));
 			m_grid.at(diagonalIndex)->setPrevious(t_current);
@@ -864,7 +933,7 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 			{
 				goalFound = true;
 
-				//since goal has been immediately found, just set the limits to 1
+				//since goal has been immediately found, just set the limits to where the goal is
 				switch (t_direction)
 				{
 				case GridManager::NeighbourIndex::LEFT:
@@ -890,6 +959,7 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 	else if (m_grid.at(indexInDirection)->getType() == GridTile::TileType::Goal)
 	{
 		goalFound = true;
+		m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
 	}
 	else
 	{
@@ -934,7 +1004,7 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 	t_rectBoundary.push_back(corner1);
 	t_rectBoundary.push_back(corner2);
 
-	if (corner1 >= 0 && corner2 >= 0)
+	/*if (corner1 >= 0 && corner2 >= 0)
 	{
 		if (m_startIndex != corner1 && m_goalIndex != corner1)
 		{
@@ -945,15 +1015,17 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 			m_grid.at(corner2)->setToPath();
 		}
 	}
-	else if (goalFound)
+	else */if (goalFound)
 	{
 		corner1 = m_goalIndex;
 		corner2 = m_goalIndex;
+
+		m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
 	}
-	else
-	{
-		throw std::invalid_argument("one of the corners is an invalid index!");
-	}
+	//else
+	//{
+	//	throw std::invalid_argument("one of the corners is an invalid index!");
+	//}
 
 	//std::cout << "Limit in direction: " << limitInDirection << std::endl;
 	//std::cout << "Side Limit 1: " << sideLimit1 << std::endl;
@@ -990,6 +1062,10 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 			startPointIndex = t_origin;
 		}
 		getRectInOpposite(t_rectBoundary, oppositeDirection, startPointIndex, sideLimit1, sideLimit2, goalFound);
+	}
+	else if (m_grid.at(m_goalIndex)->getPrevious() == nullptr)
+	{
+		m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
 	}
 	//if (goalFound)
 	//{
