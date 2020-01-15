@@ -70,6 +70,8 @@ private:
 	bool successor();
 	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
 	void calculateRectangleNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current);
+	void markNeighbours(NeighbourIndex t_neighboursInDirection, GridTile* t_current, int t_corner1, int t_corner2, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq);
+	void markDiagonal(NeighbourIndex t_direction, GridTile* t_current, int t_corner, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq);
 	GridManager::NeighbourIndex directionToGoal(int t_tileIndex);
 
 	//functions for finding rectangle boundaries
