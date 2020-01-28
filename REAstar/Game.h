@@ -1,4 +1,6 @@
 #pragma once
+#include "imgui/imgui.h"
+#include "imguiSFML/imgui-SFML.h"
 
 #include <SFML/Graphics.hpp>
 #include <iostream>
@@ -8,6 +10,7 @@
 #include <string>
 #include <vector>
 #include "GridManager.h"
+
 
 enum class GridLayout
 {
@@ -42,6 +45,7 @@ private:
 	void render();
 	void processScreenEvents();
 	void setupGrid();
+	void imguiUpdate(sf::Time t_deltaTime);
 
 	void initLayout();
 
