@@ -1,16 +1,27 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <iostream>
 #include <fstream>
 #include <utility>
 #include <map>
 #include <string>
 #include <vector>
-#include "GridManager.h"
+#include <sstream>
+#include <cstdlib>
+
+//#include "imgui/imgui.h"
+//#include "imguiSFML/imgui-SFML.h"
+
+#include <SFML/Graphics.hpp>
+
+#include "Thor/Vectors.hpp"
+
 #include "boost/thread.hpp"
 #include "boost/thread/scoped_thread.hpp"
 #include "boost/thread/mutex.hpp"
+
+#include "GridManager.h"
+
 
 enum class GridLayout
 {
@@ -46,6 +57,7 @@ private:
 	void renderingThread();
 	void processScreenEvents();
 	void setupGrid();
+	void imguiUpdate(sf::Time t_deltaTime);
 
 	void initLayout();
 

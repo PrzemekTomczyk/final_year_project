@@ -1,7 +1,5 @@
+#include "stdafx.h"
 #include "Game.h"
-#include "Thor/Vectors.hpp"
-#include <sstream> 
-#include <stdlib.h>
 
 void visitTile(GridTile* tile) {
 	std::cout << "Visiting: " << tile->getIndex() << std::endl;
@@ -22,6 +20,8 @@ Game::Game() :
 
 	m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
 	setupGrid();
+
+	//ImGui::SFML::Init(m_window);
 }
 
 Game::~Game()
@@ -33,7 +33,6 @@ void Game::run()
 	m_window.setActive(false);
 
 	boost::thread t{ &Game::renderingThread, this };
-
 
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
@@ -48,8 +47,11 @@ void Game::run()
 			processEvents();
 			update(timePerFrame);
 		}
+		//imguiUpdate(timePerFrame);
+		render();
 	}
 	t.join();
+	//ImGui::SFML::Shutdown();
 }
 
 void Game::processEvents()
@@ -58,6 +60,8 @@ void Game::processEvents()
 	processScreenEvents();
 	while (m_window.pollEvent(event))
 	{
+		//ImGui::SFML::ProcessEvent(event);
+
 		if (sf::Event::Closed == event.type) // window message
 		{
 			m_window.close();
@@ -134,6 +138,8 @@ void Game::render()
 	m_window.draw(m_tooltipText);
 
 	m_grid->render();
+
+	//ImGui::SFML::Render(m_window);
 
 	m_window.display();
 }
@@ -248,3 +254,34 @@ void Game::setupGrid()
 		std::cout << "Finished Grid init" << std::endl;
 	}
 }
+
+//void Game::imguiUpdate(sf::Time t_deltaTime)
+//{
+//	ImGui::SFML::Update(m_window, t_deltaTime);
+//	ImGui::Begin("Sample window"); // begin window
+//
+//	sf::Color bgColor;
+//	float color[3] = { 0.f, 0.f, 0.f };
+//	char windowTitle[255] = "ImGui + SFML = <3";
+//
+//
+//	// Background color edit
+//	if (ImGui::ColorEdit3("Background color", color)) {
+//		// this code gets called if color value changes, so
+//		// the background color is upgraded automatically!
+//		bgColor.r = static_cast<sf::Uint8>(color[0] * 255.f);
+//		bgColor.g = static_cast<sf::Uint8>(color[1] * 255.f);
+//		bgColor.b = static_cast<sf::Uint8>(color[2] * 255.f);
+//	}
+//
+//	// Window title text edit
+//	ImGui::InputText("Window title", windowTitle, 255);
+//
+//	if (ImGui::Button("Update window title")) {
+//		// this code gets if user clicks on the button
+//		// yes, you could have written if(ImGui::InputText(...))
+//		// but I do this to show how buttons work :)
+//		m_window.setTitle(windowTitle);
+//	}
+//	ImGui::End(); // end window
+//}

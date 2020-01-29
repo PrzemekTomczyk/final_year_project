@@ -1,4 +1,5 @@
-﻿#include "GridTile.h"
+﻿#include "stdafx.h"
+#include "GridTile.h"
 
 GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, sf::Font& t_font, GridTile* t_previous) :
 	m_pos(t_pos),
