@@ -8,6 +8,9 @@
 #include <string>
 #include <vector>
 #include "GridManager.h"
+#include "boost/thread.hpp"
+#include "boost/thread/scoped_thread.hpp"
+#include "boost/thread/mutex.hpp"
 
 enum class GridLayout
 {
@@ -40,6 +43,7 @@ private:
 	void processEvents();
 	void update(sf::Time t_deltaTime);
 	void render();
+	void renderingThread();
 	void processScreenEvents();
 	void setupGrid();
 
@@ -51,11 +55,18 @@ private:
 
 	bool m_exitGame; // control exiting game
 	bool m_loadLayout = false;
+	bool m_windowCreated = false;
 
 	GridManager* m_grid;
 	GridLayout m_layout;
 	//text
 	sf::Text m_tooltipText;
 	sf::RectangleShape m_textBackground;
+
+	//multithreading
+	boost::condition_variable m_conditional;
+	boost::mutex m_mutex;
+	bool m_rendering = false;
+	bool m_creatingGrid = false;
 };
 

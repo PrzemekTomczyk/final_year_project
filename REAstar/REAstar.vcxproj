@@ -49,11 +49,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SFML_SDK)/include;.\include\;.</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SFML_SDK)/include;.\include\;.;C:\BOOST;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(SFML_SDK)\lib;.\lib;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SFML_SDK)\lib;.\lib;C:\BOOST\stage\lib;</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d  "$(ProjectDir)lib\*.dll" "$(TargetDir)"</Command>

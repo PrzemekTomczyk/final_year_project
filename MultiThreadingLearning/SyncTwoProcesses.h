@@ -20,8 +20,6 @@ private:
 	boost::condition_variable m_conditional;
 	boost::condition_variable m_conditionalTest;
 	bool m_done = false;
-
-	boost::mutex m_screen;
 };
 
 TwoProcesses::TwoProcesses()

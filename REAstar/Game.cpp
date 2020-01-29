@@ -30,6 +30,11 @@ Game::~Game()
 
 void Game::run()
 {
+	m_window.setActive(false);
+
+	boost::thread t{ &Game::renderingThread, this };
+
+
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
 	sf::Time timePerFrame = sf::seconds(1.f / 60.f);
@@ -43,8 +48,8 @@ void Game::run()
 			processEvents();
 			update(timePerFrame);
 		}
-		render();
 	}
+	t.join();
 }
 
 void Game::processEvents()
@@ -67,15 +72,35 @@ void Game::processEvents()
 			{
 				if (event.key.code == sf::Keyboard::F1)
 				{
+					boost::mutex::scoped_lock lock(m_mutex);
+
+					while (m_rendering)
+					{
+						m_conditional.wait(lock);
+					}
+
+					m_creatingGrid = true;
 					m_loadLayout = true;
 					m_layout = GridLayout::TEST;
 					initLayout();
+					m_creatingGrid = false;
+					m_conditional.notify_all();
 				}
 				if (event.key.code == sf::Keyboard::F2)
 				{
+					boost::mutex::scoped_lock lock(m_mutex);
+
+					while (m_rendering)
+					{
+						m_conditional.wait(lock);
+					}
+
+					m_creatingGrid = true;
 					m_loadLayout = true;
 					m_layout = GridLayout::SANDBOX;
 					initLayout();
+					m_creatingGrid = false;
+					m_conditional.notify_all();
 				}
 			}
 		}
@@ -111,6 +136,32 @@ void Game::render()
 	m_grid->render();
 
 	m_window.display();
+}
+
+void Game::renderingThread()
+{
+	// the rendering loop
+	while (m_window.isOpen())
+	{
+		boost::mutex::scoped_lock lock(m_mutex);
+		while (m_creatingGrid) m_conditional.wait(lock);
+
+		m_rendering = true;
+
+		m_window.clear(sf::Color::Black);
+
+		m_window.draw(m_textBackground);
+		m_window.draw(m_tooltipText);
+
+		if (m_grid != nullptr)
+		{
+			m_grid->render();
+		}
+
+		m_window.display();
+		m_conditional.notify_all();
+		m_rendering = false;
+	}
 }
 
 void Game::processScreenEvents()
@@ -178,7 +229,12 @@ void Game::setupGrid()
 		float outlineThiccness = thor::length(sf::Vector2f(m_tooltipText.getGlobalBounds().width, (float)windowYSize)) * 0.01f;
 		m_textBackground.setSize(sf::Vector2f(m_tooltipText.getGlobalBounds().width + outlineThiccness * 2, (float)windowYSize));
 
-		m_window.create(sf::VideoMode{ windowXSize + (unsigned int)m_tooltipText.getGlobalBounds().width + (unsigned int)outlineThiccness * 2, windowYSize, 32U }, windowTitle, sf::Style::Titlebar | sf::Style::Close);
+		if (!m_windowCreated)
+		{
+			m_window.create(sf::VideoMode{ windowXSize + (unsigned int)m_tooltipText.getGlobalBounds().width + (unsigned int)outlineThiccness * 2, windowYSize, 32U }, windowTitle, sf::Style::Titlebar | sf::Style::Close);
+			m_windowCreated = true;
+		}
+
 		m_window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - m_window.getSize().x / 2, 0));
 
 		m_textBackground.setFillColor(sf::Color(0, 0, 102));

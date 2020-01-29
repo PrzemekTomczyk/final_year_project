@@ -460,7 +460,7 @@ void GridManager::backTrack()
 void GridManager::init(float t_textOffset)
 {
 	//use height of the window to make squares as the right side of the screen is used for tooltip info
-	m_tileSize.y = m_window.getSize().y / NO_OF_ROWS;
+	m_tileSize.y = (m_window.getSize().y) / NO_OF_ROWS;
 	m_tileSize.x = m_tileSize.y;
 	m_grid.reserve(MAX_TILES);
 
@@ -540,7 +540,7 @@ void GridManager::reaAlgorithm()
 		//clear out the vector of corners
 		corners.clear();
 	}
-	reaGridRedraw();
+	//reaGridRedraw();
 
 	while (!pq.empty())
 	{
@@ -555,7 +555,7 @@ void GridManager::reaAlgorithm()
 		pq.pop();
 		if (!current->getVisited())
 		{
-			//std::this_thread::sleep_for(std::chrono::milliseconds(250));
+			std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
 			if (expand(current->getIndex(), corners))
 			{
@@ -571,7 +571,7 @@ void GridManager::reaAlgorithm()
 				//clear out the vector of corners
 				corners.clear();
 			}
-			reaGridRedraw();
+			//reaGridRedraw();
 		}
 	}
 	//if we get here, goal has not been found
