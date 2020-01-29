@@ -34,6 +34,7 @@
 #include "boost/thread.hpp"
 #include "boost/thread/scoped_thread.hpp"
 #include "boost/thread/mutex.hpp"
+#include "boost/thread/lock_types.hpp"
 
 //SFML
 #include <SFML/Graphics.hpp>

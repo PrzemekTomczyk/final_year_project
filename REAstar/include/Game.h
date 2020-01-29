@@ -19,6 +19,7 @@
 #include "boost/thread.hpp"
 #include "boost/thread/scoped_thread.hpp"
 #include "boost/thread/mutex.hpp"
+#include "boost/thread/lock_types.hpp"
 
 #include "GridManager.h"
 
@@ -80,5 +81,6 @@ private:
 	boost::mutex m_mutex;
 	bool m_rendering = false;
 	bool m_creatingGrid = false;
+	bool m_renderGui = false;
 };
 

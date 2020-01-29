@@ -48,7 +48,8 @@ void Game::run()
 			update(timePerFrame);
 		}
 		//imguiUpdate(timePerFrame);
-		render();
+		//ImGui::SFML::Render(m_window);
+		//render();
 	}
 	t.join();
 	//ImGui::SFML::Shutdown();
@@ -61,7 +62,11 @@ void Game::processEvents()
 	while (m_window.pollEvent(event))
 	{
 		//ImGui::SFML::ProcessEvent(event);
-
+		if (sf::Event::Resized == event.type)
+		{
+			sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
+			m_window.setView(sf::View(visibleArea));
+		}
 		if (sf::Event::Closed == event.type) // window message
 		{
 			m_window.close();
@@ -69,54 +74,6 @@ void Game::processEvents()
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
 			m_exitGame = true;
-		}
-		if (sf::Event::KeyPressed == event.type)
-		{
-			if (!m_loadLayout)
-			{
-				if (event.key.code == sf::Keyboard::F1)
-				{
-					boost::mutex::scoped_lock lock(m_mutex);
-
-					while (m_rendering)
-					{
-						m_conditional.wait(lock);
-					}
-
-					m_creatingGrid = true;
-					m_loadLayout = true;
-					m_layout = GridLayout::TEST;
-					initLayout();
-					m_creatingGrid = false;
-					m_conditional.notify_all();
-				}
-				if (event.key.code == sf::Keyboard::F2)
-				{
-					boost::mutex::scoped_lock lock(m_mutex);
-
-					while (m_rendering)
-					{
-						m_conditional.wait(lock);
-					}
-
-					m_creatingGrid = true;
-					m_loadLayout = true;
-					m_layout = GridLayout::SANDBOX;
-					initLayout();
-					m_creatingGrid = false;
-					m_conditional.notify_all();
-				}
-			}
-		}
-		else if (sf::Event::KeyReleased == event.type)
-		{
-			if (m_loadLayout)
-			{
-				if (event.key.code == sf::Keyboard::F1 || event.key.code == sf::Keyboard::F2)
-				{
-					m_loadLayout = false;
-				}
-			}
 		}
 	}
 }
@@ -127,6 +84,52 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		m_window.close();
 	}
+
+	if (!m_loadLayout)
+	{
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::F1))
+		{
+			m_creatingGrid = true;
+			boost::mutex::scoped_lock lock(m_mutex);
+
+			while (m_rendering)
+			{
+				m_conditional.wait(lock);
+				std::cout << "while in F1" << std::endl;
+			}
+
+			m_loadLayout = true;
+			m_layout = GridLayout::TEST;
+			initLayout();
+			m_creatingGrid = false;
+			lock.unlock();
+			m_conditional.notify_all();
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::F2))
+		{
+			m_creatingGrid = true;
+			boost::mutex::scoped_lock lock(m_mutex);
+
+			while (m_rendering)
+			{
+				m_conditional.wait(lock);
+				std::cout << "while in F2" << std::endl;
+			}
+
+			m_loadLayout = true;
+			m_layout = GridLayout::SANDBOX;
+			initLayout();
+			m_creatingGrid = false;
+			lock.unlock();
+			m_conditional.notify_all();
+		}
+	}
+	else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::F1) && !sf::Keyboard::isKeyPressed(sf::Keyboard::F2))
+	{
+		m_loadLayout = false;
+	}
+
+
 	m_grid->update();
 }
 
@@ -146,27 +149,37 @@ void Game::render()
 
 void Game::renderingThread()
 {
+	m_window.setActive(true);
+
 	// the rendering loop
 	while (m_window.isOpen())
 	{
 		boost::mutex::scoped_lock lock(m_mutex);
-		while (m_creatingGrid) m_conditional.wait(lock);
 
-		m_rendering = true;
-
-		m_window.clear(sf::Color::Black);
-
-		m_window.draw(m_textBackground);
-		m_window.draw(m_tooltipText);
-
-		if (m_grid != nullptr)
+		while (m_creatingGrid)
 		{
-			m_grid->render();
+			m_conditional.wait(lock);
+			std::cout << "waiting for grid setup" << std::endl;
 		}
 
-		m_window.display();
-		m_conditional.notify_all();
-		m_rendering = false;
+		if (!m_creatingGrid)
+		{
+			m_rendering = true;
+
+			m_window.clear(sf::Color::Black);
+
+			m_window.draw(m_textBackground);
+			m_window.draw(m_tooltipText);
+
+			if (m_grid != nullptr)
+			{
+				m_grid->render();
+			}
+
+			m_window.display();
+			m_rendering = false;
+			m_conditional.notify_all();
+		}
 	}
 }
 
@@ -240,6 +253,10 @@ void Game::setupGrid()
 			m_window.create(sf::VideoMode{ windowXSize + (unsigned int)m_tooltipText.getGlobalBounds().width + (unsigned int)outlineThiccness * 2, windowYSize, 32U }, windowTitle, sf::Style::Titlebar | sf::Style::Close);
 			m_windowCreated = true;
 		}
+		else
+		{
+			m_window.setSize(sf::Vector2u(windowXSize + (unsigned int)m_tooltipText.getGlobalBounds().width + (unsigned int)outlineThiccness * 2, windowYSize));
+		}
 
 		m_window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - m_window.getSize().x / 2, 0));
 
@@ -255,33 +272,33 @@ void Game::setupGrid()
 	}
 }
 
-//void Game::imguiUpdate(sf::Time t_deltaTime)
-//{
-//	ImGui::SFML::Update(m_window, t_deltaTime);
-//	ImGui::Begin("Sample window"); // begin window
-//
-//	sf::Color bgColor;
-//	float color[3] = { 0.f, 0.f, 0.f };
-//	char windowTitle[255] = "ImGui + SFML = <3";
-//
-//
-//	// Background color edit
-//	if (ImGui::ColorEdit3("Background color", color)) {
-//		// this code gets called if color value changes, so
-//		// the background color is upgraded automatically!
-//		bgColor.r = static_cast<sf::Uint8>(color[0] * 255.f);
-//		bgColor.g = static_cast<sf::Uint8>(color[1] * 255.f);
-//		bgColor.b = static_cast<sf::Uint8>(color[2] * 255.f);
-//	}
-//
-//	// Window title text edit
-//	ImGui::InputText("Window title", windowTitle, 255);
-//
-//	if (ImGui::Button("Update window title")) {
-//		// this code gets if user clicks on the button
-//		// yes, you could have written if(ImGui::InputText(...))
-//		// but I do this to show how buttons work :)
-//		m_window.setTitle(windowTitle);
-//	}
-//	ImGui::End(); // end window
-//}
+void Game::imguiUpdate(sf::Time t_deltaTime)
+{
+	ImGui::SFML::Update(m_window, t_deltaTime);
+	ImGui::Begin("Sample window"); // begin window
+
+	sf::Color bgColor;
+	float color[3] = { 0.f, 0.f, 0.f };
+	char windowTitle[255] = "ImGui + SFML = <3";
+
+
+	// Background color edit
+	if (ImGui::ColorEdit3("Background color", color)) {
+		// this code gets called if color value changes, so
+		// the background color is upgraded automatically!
+		bgColor.r = static_cast<sf::Uint8>(color[0] * 255.f);
+		bgColor.g = static_cast<sf::Uint8>(color[1] * 255.f);
+		bgColor.b = static_cast<sf::Uint8>(color[2] * 255.f);
+	}
+
+	// Window title text edit
+	ImGui::InputText("Window title", windowTitle, 255);
+
+	if (ImGui::Button("Update window title")) {
+		// this code gets if user clicks on the button
+		// yes, you could have written if(ImGui::InputText(...))
+		// but I do this to show how buttons work :)
+		m_window.setTitle(windowTitle);
+	}
+	ImGui::End(); // end window
+}
