@@ -344,6 +344,19 @@ int GridManager::getNeighbourIndex(NeighbourIndex t_neighbour, int t_index)
 	}
 }
 
+bool GridManager::cardinalDirectionsAvailable(int t_index)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		int neighbourIndex = getNeighbourIndex((NeighbourIndex)i, t_index);
+		if (neighbourIndex >= 0 && m_grid.at(neighbourIndex)->getType() == GridTile::TileType::Obstacle)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void GridManager::checkIfStartRemoved(int t_tileClicked)
 {
 	if (m_grid.at(t_tileClicked)->getType() == GridTile::TileType::Start)
@@ -582,7 +595,7 @@ void GridManager::reaAlgorithm()
 
 bool GridManager::insertS(std::vector<int>& t_corners)
 {
-	return getRectInDirection(t_corners, /*NeighbourIndex::TOP*/directionToGoal(m_startIndex), m_startIndex);
+	return getRectInDirection(t_corners, NeighbourIndex::TOP/*directionToGoal(m_startIndex)*/, m_startIndex);
 }
 
 bool GridManager::successor()
@@ -849,7 +862,7 @@ void GridManager::markDiagonal(NeighbourIndex t_direction, GridTile* t_current, 
 /// Calculates direction in which a rectangle should expand in
 /// </summary>
 /// <param name="t_tileIndex"></param>
-/// <returns></returns>
+/// <returns>Enum that points in the direction of the goal</returns>
 GridManager::NeighbourIndex GridManager::directionToGoal(int t_tileIndex)
 {
 	GridManager::NeighbourIndex direction;
@@ -912,14 +925,14 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 				case GridManager::NeighbourIndex::LEFT:
 				case GridManager::NeighbourIndex::RIGHT:
 					limitInDirection = m_grid.at(tempIndex)->getColRow().x;
-					sideLimit1 = getSideBoundary(NeighbourIndex::TOP, tempIndex, sideLimit1, goalFound);
-					sideLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, tempIndex, sideLimit2, goalFound);
+					sideLimit1 = getSideBoundary(NeighbourIndex::TOP, tempIndex, sideLimit1, goalFound, t_origin);
+					sideLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, tempIndex, sideLimit2, goalFound, t_origin);
 					break;
 				case GridManager::NeighbourIndex::TOP:
 				case GridManager::NeighbourIndex::BOTTOM:
 					limitInDirection = m_grid.at(tempIndex)->getColRow().y;
-					sideLimit1 = getSideBoundary(NeighbourIndex::LEFT, tempIndex, sideLimit1, goalFound);
-					sideLimit2 = getSideBoundary(NeighbourIndex::RIGHT, tempIndex, sideLimit2, goalFound);
+					sideLimit1 = getSideBoundary(NeighbourIndex::LEFT, tempIndex, sideLimit1, goalFound, t_origin);
+					sideLimit2 = getSideBoundary(NeighbourIndex::RIGHT, tempIndex, sideLimit2, goalFound, t_origin);
 					break;
 				default:
 					throw std::invalid_argument("received bad direction value");
@@ -954,10 +967,13 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 			}
 		}
 	}
-	else if (m_grid.at(indexInDirection)->getType() == GridTile::TileType::Goal)
+	else if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() == GridTile::TileType::Goal)
 	{
 		goalFound = true;
-		m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
+		if (!m_grid.at(m_goalIndex)->getPrevious())
+		{
+			m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
+		}
 	}
 	else
 	{
@@ -967,14 +983,14 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 		case GridManager::NeighbourIndex::LEFT:
 		case GridManager::NeighbourIndex::RIGHT:
 			limitInDirection = m_grid.at(t_origin)->getColRow().x;
-			sideLimit1 = getSideBoundary(NeighbourIndex::TOP, t_origin, sideLimit1, goalFound);
-			sideLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, t_origin, sideLimit2, goalFound);
+			sideLimit1 = getSideBoundary(NeighbourIndex::TOP, t_origin, sideLimit1, goalFound, t_origin);
+			sideLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, t_origin, sideLimit2, goalFound, t_origin);
 			break;
 		case GridManager::NeighbourIndex::TOP:
 		case GridManager::NeighbourIndex::BOTTOM:
 			limitInDirection = m_grid.at(t_origin)->getColRow().y;
-			sideLimit1 = getSideBoundary(NeighbourIndex::LEFT, t_origin, sideLimit1, goalFound);
-			sideLimit2 = getSideBoundary(NeighbourIndex::RIGHT, t_origin, sideLimit2, goalFound);
+			sideLimit1 = getSideBoundary(NeighbourIndex::LEFT, t_origin, sideLimit1, goalFound, t_origin);
+			sideLimit2 = getSideBoundary(NeighbourIndex::RIGHT, t_origin, sideLimit2, goalFound, t_origin);
 			break;
 		default:
 			throw std::invalid_argument("received bad direction value");
@@ -1002,23 +1018,26 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 	t_rectBoundary.push_back(corner1);
 	t_rectBoundary.push_back(corner2);
 
-	/*if (corner1 >= 0 && corner2 >= 0)
+	if (corner1 >= 0 && corner2 >= 0)
 	{
 		if (m_startIndex != corner1 && m_goalIndex != corner1)
 		{
-			m_grid.at(corner1)->setToPath();
+			m_grid.at(corner1)->setToCorner();
 		}
 		if (m_startIndex != corner2 && m_goalIndex != corner2)
 		{
-			m_grid.at(corner2)->setToPath();
+			m_grid.at(corner2)->setToCorner();
 		}
 	}
-	else */if (goalFound)
+	if (goalFound)
 	{
 		corner1 = m_goalIndex;
 		corner2 = m_goalIndex;
 
-		m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
+		if (!m_grid.at(m_goalIndex)->getPrevious())
+		{
+			m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
+		}
 	}
 	//else
 	//{
@@ -1106,8 +1125,8 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 				case GridManager::NeighbourIndex::LEFT:
 				case GridManager::NeighbourIndex::RIGHT:
 				{
-					tempLimit1 = getSideBoundary(NeighbourIndex::TOP, tempIndex, sideLimit1, t_goalFound);
-					tempLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, tempIndex, sideLimit2, t_goalFound);
+					tempLimit1 = getSideBoundary(NeighbourIndex::TOP, tempIndex, sideLimit1, t_goalFound, t_origin);
+					tempLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, tempIndex, sideLimit2, t_goalFound, t_origin);
 
 					if (tempLimit1 > sideLimit1)
 					{
@@ -1126,8 +1145,8 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 				case GridManager::NeighbourIndex::TOP:
 				case GridManager::NeighbourIndex::BOTTOM:
 				{
-					tempLimit1 = getSideBoundary(NeighbourIndex::LEFT, tempIndex, sideLimit1, t_goalFound);
-					tempLimit2 = getSideBoundary(NeighbourIndex::RIGHT, tempIndex, sideLimit2, t_goalFound);
+					tempLimit1 = getSideBoundary(NeighbourIndex::LEFT, tempIndex, sideLimit1, t_goalFound, t_origin);
+					tempLimit2 = getSideBoundary(NeighbourIndex::RIGHT, tempIndex, sideLimit2, t_goalFound, t_origin);
 
 					if (tempLimit1 > sideLimit1)
 					{
@@ -1231,11 +1250,11 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 	{
 		if (m_startIndex != corner1 && m_goalIndex != corner1)
 		{
-			m_grid.at(corner1)->setToPath();
+			m_grid.at(corner1)->setToCorner();
 		}
 		if (m_startIndex != corner2 && m_goalIndex != corner2)
 		{
-			m_grid.at(corner2)->setToPath();
+			m_grid.at(corner2)->setToCorner();
 		}
 	}
 	else
@@ -1243,12 +1262,17 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 		throw std::invalid_argument("one of the corners is an invalid index!");
 	}
 
+	if (t_goalFound && m_grid.at(m_goalIndex)->getPrevious() == nullptr)
+	{
+		m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
+	}
+
 	//std::cout << "Limit in opposite direction: " << limitInDirection << std::endl;
 	//std::cout << "Side Limit 1: " << tempSideLimit1 << std::endl;
 	//std::cout << "Side Limit 2: " << tempSideLimit2 << std::endl;
 }
 
-int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound)
+int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound, int t_rectOrigin)
 {
 	//expand in the given direction
 	bool expand = true;
@@ -1310,6 +1334,16 @@ int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin,
 			{
 				//stop looping
 				t_goalFound = true;
+
+				if (!cardinalDirectionsAvailable(t_rectOrigin))
+				{
+					m_grid.at(t_expandOrigin)->setPrevious(m_grid.at(t_rectOrigin));
+					m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_expandOrigin));
+				}
+				else
+				{
+					m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_rectOrigin));
+				}
 				expand = false;
 			}
 		}
@@ -1394,5 +1428,5 @@ int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin,
 bool GridManager::expand(int t_cbn, std::vector<int>& t_corners)
 {
 	//std::cout << "Expanding tile: " << std::to_string(t_cbn) << std::endl;
-	return getRectInDirection(t_corners, /*NeighbourIndex::TOP*/directionToGoal(t_cbn), t_cbn);
+	return getRectInDirection(t_corners, NeighbourIndex::TOP/*directionToGoal(t_cbn)*/, t_cbn);
 }

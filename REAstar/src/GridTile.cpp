@@ -69,6 +69,11 @@ void GridTile::setToPath()
 	m_type = TileType::Path;
 }
 
+void GridTile::setToCorner()
+{
+	m_type = TileType::Corner;
+}
+
 void GridTile::reset()
 {
 	setMarked(false);
@@ -105,7 +110,7 @@ float GridTile::getTotalDist() const
 
 void GridTile::setVisited(bool t_visited)
 {
-	if (m_type != TileType::Goal && m_type != TileType::Start)
+	if (m_type != TileType::Goal && m_type != TileType::Start && m_type != TileType::Corner)
 	{
 		m_type = TileType::Visited;
 	}
@@ -114,10 +119,10 @@ void GridTile::setVisited(bool t_visited)
 
 void GridTile::setMarked(bool t_marked)
 {
-	if (m_type != TileType::Goal && m_type != TileType::Start)
+	if (m_type != TileType::Goal && m_type != TileType::Start && m_type != TileType::Corner)
 	{
 		m_type = TileType::Marked;
-	}	
+	}
 	m_marked = t_marked;
 }
 
@@ -233,6 +238,11 @@ void GridTile::setColour()
 		m_rgb[0] = 0;
 		m_rgb[1] = 255;
 		m_rgb[2] = 255;
+		break;
+	case GridTile::TileType::Corner:
+		m_rgb[0] = 150;
+		m_rgb[1] = 150;
+		m_rgb[2] = 150;
 		break;
 	default:
 		break;

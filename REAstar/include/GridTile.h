@@ -19,7 +19,8 @@ public:
 		None,
 		Visited,
 		Marked,
-		Path
+		Path,
+		Corner
 	};
 
 	const int RED[3]{ 255, 0, 0 };
@@ -33,6 +34,7 @@ public:
 	void setToStart();
 	void setToGoal();
 	void setToPath();
+	void setToCorner();
 	void reset();
 
 	bool getVisited() const;

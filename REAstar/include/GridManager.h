@@ -27,11 +27,11 @@ class GridManager
 	{
 		LEFT = 0,
 		RIGHT = 1,
-		TOP_LEFT = 2,
-		TOP = 3,
-		TOP_RIGHT = 4,
-		BOTTOM_LEFT = 5,
-		BOTTOM = 6,
+		TOP = 2,
+		BOTTOM = 3,
+		TOP_LEFT = 4,
+		TOP_RIGHT = 5,
+		BOTTOM_LEFT = 6,
 		BOTTOM_RIGHT = 7
 	};
 
@@ -57,6 +57,7 @@ private:
 	void resetGrid();
 	void resetNonObstacles();	
 	int getNeighbourIndex(NeighbourIndex t_neighbour, int t_index);
+	bool cardinalDirectionsAvailable(int t_index);
 	void checkIfStartRemoved(int t_tileClicked);
 	int getClickedTileIndex(sf::Vector2i t_mousePos);
 	void setTestLayout();
@@ -77,7 +78,7 @@ private:
 	//functions for finding rectangle boundaries
 	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin);
 	void getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin, int t_limit1, int t_limit2, bool& t_goalFound);
-	int getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound);
+	int getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound, int t_rectOrigin);
 
 	//vectors
 	std::vector<GridTile*> m_grid;
