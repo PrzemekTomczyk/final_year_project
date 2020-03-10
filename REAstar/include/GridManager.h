@@ -80,6 +80,12 @@ private:
 	void getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin, int t_limit1, int t_limit2, bool& t_goalFound);
 	int getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound, int t_rectOrigin);
 
+
+	//new funcs
+	std::vector<std::vector<int>> getRectBoundaries(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin);
+	std::vector<int> calcBoundary(int t_corner1, int t_corner2, NeighbourIndex t_dir);
+
+
 	//vectors
 	std::vector<GridTile*> m_grid;
 	sf::Vector2f m_tileSize;

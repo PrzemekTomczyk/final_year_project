@@ -22,6 +22,11 @@ public:
 		Path,
 		Corner
 	};
+	enum class ReaMode
+	{
+		Gpoint
+	};
+
 
 	const int RED[3]{ 255, 0, 0 };
 	const int GREEN[3]{ 0, 255, 0 };
@@ -81,5 +86,9 @@ private:
 	sf::Font& m_font;
 
 	sf::Text m_text;
+
+public:
+	ReaMode m_mode;
+	float m_gval;
 };
 

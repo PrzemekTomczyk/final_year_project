@@ -595,7 +595,27 @@ void GridManager::reaAlgorithm()
 
 bool GridManager::insertS(std::vector<int>& t_corners)
 {
-	return getRectInDirection(t_corners, NeighbourIndex::TOP/*directionToGoal(m_startIndex)*/, m_startIndex);
+	bool goalFound = getRectInDirection(t_corners, NeighbourIndex::TOP/*directionToGoal(m_startIndex)*/, m_startIndex);
+	
+	std::vector<std::vector<int>> boundaries;
+
+	if (!goalFound)
+	{
+		//we have 4 boundaries
+		for (auto& boundary : boundaries)
+		{
+			for (auto& tile : boundary)
+			{
+				if (tile >= 0 && tile < MAX_TILES && m_grid.at(tile)->getType() != GridTile::TileType::Obstacle)
+				{
+					m_grid.at(tile)->m_gval = getOctileDist(m_grid.at(tile)->getPos(), m_grid.at(m_startIndex)->getPos());
+					m_grid.at(tile)->m_mode = GridTile::ReaMode::Gpoint;
+				}
+			}
+		}
+	}
+	
+	return goalFound;
 }
 
 bool GridManager::successor()
@@ -605,11 +625,10 @@ bool GridManager::successor()
 
 float GridManager::getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2)
 {
-	float D = 1.f;
 	float D2 = sqrt(2.f);
 	float dx = abs(t_p1.x - t_p2.x);
 	float dy = abs(t_p1.y - t_p2.y);
-	return D * (dx + dy) + (D2 - 2.f * D) * std::min(dx, dy);
+	return (dx + dy) + (D2 - 2.f) * std::min(dx, dy);
 }
 
 void GridManager::calculateRectangleNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current)
@@ -1423,6 +1442,53 @@ int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin,
 	}
 
 	return limit;
+}
+
+std::vector<std::vector<int>> GridManager::getRectBoundaries(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin)
+{
+	std::vector<std::vector<int>> boundaries;
+
+	//potentially 4 rect boundaries
+	//north
+	boundaries.push_back(calcBoundary(t_rectBoundary[0], t_rectBoundary[1], NeighbourIndex::TOP));
+	//south
+	boundaries.push_back(calcBoundary(t_rectBoundary[2], t_rectBoundary[3], NeighbourIndex::BOTTOM));
+	//west
+	boundaries.push_back(calcBoundary(t_rectBoundary[0], t_rectBoundary[2], NeighbourIndex::LEFT));
+	//east
+	boundaries.push_back(calcBoundary(t_rectBoundary[1], t_rectBoundary[3], NeighbourIndex::RIGHT));	
+	
+	return boundaries;
+}
+
+std::vector<int> GridManager::calcBoundary(int t_corner1, int t_corner2, NeighbourIndex t_dir)
+{
+	std::vector<int> boundary;
+	int index = t_corner1;
+	int offset = 0;
+
+	switch (t_dir)
+	{
+	case GridManager::NeighbourIndex::LEFT:
+	case GridManager::NeighbourIndex::RIGHT:
+		offset = TILES_PER_ROW;
+		break;
+	case GridManager::NeighbourIndex::TOP:
+	case GridManager::NeighbourIndex::BOTTOM:
+		offset = 1;
+		break;
+	default:
+		break;
+	}
+
+	while (index != t_corner2 + offset)
+	{
+		boundary.push_back(index);
+		index += offset;
+	}
+
+
+	return boundary;
 }
 
 bool GridManager::expand(int t_cbn, std::vector<int>& t_corners)
