@@ -497,7 +497,7 @@ void GridManager::init(float t_textOffset)
 	}
 	m_placeModeTxt.setFont(m_font);
 	m_placeModeTxt.setString(m_placeString);
-	m_placeModeTxt.setCharacterSize((int)(m_window.getSize().y / 31));
+	m_placeModeTxt.setCharacterSize(static_cast<int>(m_window.getSize().y / 31));
 	m_placeModeTxt.setPosition(t_textOffset - m_placeModeTxt.getGlobalBounds().width / 2.0f, 0);
 	m_placeModeTxt.setFillColor(sf::Color::Green);
 

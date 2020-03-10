@@ -18,11 +18,11 @@ GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, sf::Fon
 	m_tile.setOutlineColor(sf::Color::Black);
 	m_tile.setOutlineThickness(-1.0f);
 
-	int adjustX = (int)((m_pos.x / m_tile.getSize().x) + 1);
-	int adjustY = (int)((m_pos.y / m_tile.getSize().y) + 1);
+	int adjustX = static_cast<int>((m_pos.x / m_tile.getSize().x) + 1);
+	int adjustY = static_cast<int>((m_pos.y / m_tile.getSize().y) + 1);
 
-	int x = (int)(m_pos.x / (m_tile.getSize().x / 2) - adjustX);
-	int y = (int)(m_pos.y / (m_tile.getSize().y / 2) - adjustY);
+	int x = static_cast<int>(m_pos.x / (m_tile.getSize().x / 2) - adjustX);
+	int y = static_cast<int>(m_pos.y / (m_tile.getSize().y / 2) - adjustY);
 	m_colRow = sf::Vector2i(x, y);
 
 	m_text.setFont(m_font);

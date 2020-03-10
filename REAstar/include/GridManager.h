@@ -55,7 +55,7 @@ private:
 	void handleRightClick(sf::Vector2i t_mousePos);
 	void handleMiddleClick(sf::Vector2i t_mousePos);
 	void resetGrid();
-	void resetNonObstacles();	
+	void resetNonObstacles();
 	int getNeighbourIndex(NeighbourIndex t_neighbour, int t_index);
 	bool cardinalDirectionsAvailable(int t_index);
 	void checkIfStartRemoved(int t_tileClicked);
