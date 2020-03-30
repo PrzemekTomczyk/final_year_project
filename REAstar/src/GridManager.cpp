@@ -530,6 +530,10 @@ void GridManager::reaAlgorithm()
 	return "no path is found";
 	*/
 
+
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//Old code below!
+
 	//Initialise tiles
 	m_lines.clear();
 	resetNonObstacles();
@@ -1354,7 +1358,7 @@ int GridManager::getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin,
 				//stop looping
 				t_goalFound = true;
 
-				if (!cardinalDirectionsAvailable(t_rectOrigin))
+				if (!cardinalDirectionsAvailable(t_rectOrigin) && t_expandOrigin != t_rectOrigin)
 				{
 					m_grid.at(t_expandOrigin)->setPrevious(m_grid.at(t_rectOrigin));
 					m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_expandOrigin));
