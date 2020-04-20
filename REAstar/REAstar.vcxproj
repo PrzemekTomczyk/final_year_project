@@ -87,6 +87,9 @@
     <ClCompile Include="include\imgui\imgui_demo.cpp" />
     <ClCompile Include="include\imgui\imgui_draw.cpp" />
     <ClCompile Include="include\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="BoundaryNode.cpp" />
+    <ClCompile Include="RectNode.cpp" />
+    <ClCompile Include="SearchNode.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\GridManager.cpp" />
     <ClCompile Include="src\GridTile.cpp" />
@@ -100,6 +103,10 @@
     <ClInclude Include="include\GridManager.h" />
     <ClInclude Include="include\GridTile.h" />
     <ClInclude Include="include\stdafx.h" />
+    <ClInclude Include="BoundaryNode.h" />
+    <ClInclude Include="RectNode.h" />
+    <ClInclude Include="SearchNode.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

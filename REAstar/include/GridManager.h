@@ -11,6 +11,10 @@
 #include <stdexcept>
 #include <chrono>
 #include <thread>
+#include "BoundaryNode.h"
+#include "RectNode.h"
+#include "Utils.h"
+#include "SearchNode.h"
 
 class TileComparer
 {
@@ -21,20 +25,19 @@ public:
 	}
 };
 
+class NodeComparer
+{
+public:
+	bool operator()(const SearchNode& t1, const SearchNode& t2)
+	{
+		return t1.m_minfval > t2.m_minfval;
+	}
+};
+
+class RectNode;
+class BoundaryNode;
 class GridManager
 {
-	enum class NeighbourIndex
-	{
-		LEFT = 0,
-		RIGHT = 1,
-		TOP = 2,
-		BOTTOM = 3,
-		TOP_LEFT = 4,
-		TOP_RIGHT = 5,
-		BOTTOM_LEFT = 6,
-		BOTTOM_RIGHT = 7
-	};
-
 public:
 	GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_maxTiles, int t_noOfRows, int t_tilesPerRow);
 	~GridManager();
@@ -46,6 +49,7 @@ public:
 	int getGoalIndex();
 	void setToPath(int t_index);
 	void reaAlgorithm();
+	void properRea();
 
 private:
 	void handleInput();
@@ -68,23 +72,38 @@ private:
 	//rea* functions
 	bool insertS(std::vector<int>& t_corners);
 	bool expand(int t_cbn, std::vector<int>& t_corners);
-	bool successor();
+	bool successor(BoundaryNode& t_parentBoundary);
+	void calcENI(BoundaryNode& t_parentBoundary);
+	void calcFSI(BoundaryNode& t_parentBoundary);
 	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
 	void calculateRectangleNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current);
 	void markNeighbours(NeighbourIndex t_neighboursInDirection, GridTile* t_current, int t_corner1, int t_corner2, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq);
 	void markDiagonal(NeighbourIndex t_direction, GridTile* t_current, int t_corner, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq);
-	GridManager::NeighbourIndex directionToGoal(int t_tileIndex);
+	NeighbourIndex directionToGoal(int t_tileIndex);
+	bool rightAngleToGoal(int t_tileIndex);
 
 	//functions for finding rectangle boundaries
 	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin);
 	void getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin, int t_limit1, int t_limit2, bool& t_goalFound);
 	int getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound, int t_rectOrigin);
-
+	void markBorderers(std::vector<int>& t_rectBorder);
+	void markFSI(std::vector<int>& t_fsi, NeighbourIndex t_dir);
 
 	//new funcs
-	std::vector<std::vector<int>> getRectBoundaries(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin);
+	bool expandProper();
+	bool insertSProper();
+	std::vector<std::vector<int>> getRectBoundaries(std::vector<int>& t_rectBoundary/*, NeighbourIndex t_direction, int t_origin*/);
 	std::vector<int> calcBoundary(int t_corner1, int t_corner2, NeighbourIndex t_dir);
+	bool isValidBoundary(int& t_boundary, NeighbourIndex t_directionOfBoundary);
 
+	//rea* open list
+	std::priority_queue<SearchNode, std::vector<SearchNode>, NodeComparer> m_openlist;
+	//rectNodes vec
+	std::vector<RectNode*> m_rectNodes;
+	std::vector<SearchNode> m_searchNodes;
+	std::vector<SearchNode*> m_searchNodesPtrs;
+	std::vector<BoundaryNode> m_boundaryNodes;
+	std::vector<BoundaryNode*> m_boundaryNodesPtrs;
 
 	//vectors
 	std::vector<GridTile*> m_grid;
@@ -135,4 +154,9 @@ private:
 	int m_startIndex = -1;
 
 	std::vector<sf::Vertex> m_lines;
+
+	const int LEFT = 0;
+	const int RIGHT = 1;
+	const int TOP = 2;
+	const int BOT = 3;
 };
