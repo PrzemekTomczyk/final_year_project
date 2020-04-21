@@ -76,6 +76,7 @@ private:
 	void calcENI(BoundaryNode& t_parentBoundary);
 	void calcFSI(BoundaryNode& t_parentBoundary);
 	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
+	float getOctileDist(sf::Vector2i t_p1, sf::Vector2i t_p2);
 	void calculateRectangleNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current);
 	void markNeighbours(NeighbourIndex t_neighboursInDirection, GridTile* t_current, int t_corner1, int t_corner2, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq);
 	void markDiagonal(NeighbourIndex t_direction, GridTile* t_current, int t_corner, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq);
@@ -88,6 +89,7 @@ private:
 	int getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound, int t_rectOrigin);
 	void markBorderers(std::vector<int>& t_rectBorder);
 	void markFSI(std::vector<int>& t_fsi, NeighbourIndex t_dir);
+	void tryToUpdatePoint(int t_point, NeighbourIndex t_dir);
 
 	//new funcs
 	bool expandProper();

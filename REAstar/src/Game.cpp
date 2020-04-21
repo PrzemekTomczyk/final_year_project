@@ -64,7 +64,7 @@ void Game::processEvents()
 		//ImGui::SFML::ProcessEvent(event);
 		if (sf::Event::Resized == event.type)
 		{
-			sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
+			sf::FloatRect visibleArea(0, 0, static_cast<float>(event.size.width), static_cast<float>(event.size.height));
 			m_window.setView(sf::View(visibleArea));
 		}
 		if (sf::Event::Closed == event.type) // window message
