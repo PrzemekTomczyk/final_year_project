@@ -89,23 +89,23 @@ private:
 	int getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound, int t_rectOrigin);
 	void markBorderers(std::vector<int>& t_rectBorder);
 	void markFSI(std::vector<int>& t_fsi, NeighbourIndex t_dir);
-	void tryToUpdatePoint(int t_point, NeighbourIndex t_dir);
+	bool tryToUpdatePoint(int t_point, NeighbourIndex t_dir);
 
 	//new funcs
 	bool expandProper();
 	bool insertSProper();
-	std::vector<std::vector<int>> getRectBoundaries(std::vector<int>& t_rectBoundary/*, NeighbourIndex t_direction, int t_origin*/);
+	void getRectBoundaries(std::vector<int>& t_rectBoundary, std::vector<BoundaryNode>& t_boundaries/*, NeighbourIndex t_direction, int t_origin*/);
 	std::vector<int> calcBoundary(int t_corner1, int t_corner2, NeighbourIndex t_dir);
 	bool isValidBoundary(int& t_boundary, NeighbourIndex t_directionOfBoundary);
 
 	//rea* open list
 	std::priority_queue<SearchNode, std::vector<SearchNode>, NodeComparer> m_openlist;
 	//rectNodes vec
-	std::vector<RectNode*> m_rectNodes;
-	std::vector<SearchNode> m_searchNodes;
-	std::vector<SearchNode*> m_searchNodesPtrs;
-	std::vector<BoundaryNode> m_boundaryNodes;
-	std::vector<BoundaryNode*> m_boundaryNodesPtrs;
+	//std::vector<RectNode*> m_rectNodes;
+	//std::vector<SearchNode> m_searchNodes;
+	//std::vector<SearchNode*> m_searchNodesPtrs;
+	//std::vector<BoundaryNode> m_boundaryNodes;
+	//std::vector<BoundaryNode*> m_boundaryNodesPtrs;
 
 	//vectors
 	std::vector<GridTile*> m_grid;

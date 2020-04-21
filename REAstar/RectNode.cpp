@@ -2,10 +2,10 @@
 #include "RectNode.h"
 
 RectNode::RectNode() :
-	m_top(NeighbourIndex::TOP, this),
-	m_bot(NeighbourIndex::BOTTOM, this),
-	m_right(NeighbourIndex::RIGHT, this),
-	m_left(NeighbourIndex::LEFT, this),
+	m_top(NeighbourIndex::TOP),
+	m_bot(NeighbourIndex::BOTTOM),
+	m_right(NeighbourIndex::RIGHT),
+	m_left(NeighbourIndex::LEFT),
 	//m_previous(nullptr),
 	m_parentTile(nullptr)
 {

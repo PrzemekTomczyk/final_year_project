@@ -215,7 +215,7 @@ void GridTile::setColour()
 	case GridTile::TileType::Start:
 		m_rgb[0] = 255;
 		m_rgb[1] = 0;
-		m_rgb[2] = 0;
+		m_rgb[2] = 255;
 		break;
 	case GridTile::TileType::Goal:
 		m_rgb[0] = 0;
@@ -234,7 +234,7 @@ void GridTile::setColour()
 		break;
 	case GridTile::TileType::Marked:
 		m_rgb[0] = 255;
-		m_rgb[1] = 255;
+		m_rgb[1] = 0;
 		m_rgb[2] = 0;
 		break;
 	case GridTile::TileType::Visited:

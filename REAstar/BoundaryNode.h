@@ -5,12 +5,14 @@
 #include "SearchNode.h"
 #include "GridTile.h"
 
-class RectNode;
+//class RectNode;
 class BoundaryNode
 {
 public:
-	BoundaryNode(NeighbourIndex t_dir, RectNode* t_parent);
-	BoundaryNode(std::vector<int>& t_boundary, NeighbourIndex t_dir, RectNode* t_parent);
+	BoundaryNode();
+	BoundaryNode(NeighbourIndex t_dir/*, RectNode* t_parent*/);
+	//BoundaryNode(std::vector<int>& t_boundary, NeighbourIndex t_dir/*, RectNode* t_parent*/);
+	BoundaryNode(std::vector<int>& t_boundary, NeighbourIndex t_dir);
 
 	//private:
 	std::vector<int> m_boundary;
@@ -19,6 +21,6 @@ public:
 
 	NeighbourIndex m_dir;
 	float m_minfval;
-	RectNode* m_parentRect;
+	//RectNode* m_parentRect;
 	GridTile* m_previous = nullptr;
 };
