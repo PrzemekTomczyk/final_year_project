@@ -1649,6 +1649,7 @@ bool GridManager::insertSProper()
 	std::vector<int> rectangle;
 
 	std::vector<BoundaryNode> boundaryNodes;
+
 	if (getRect(boundaryNodes, Utils::TOP, m_startIndex))
 	{
 		std::cout << "Goal found in InsertS" << std::endl;
@@ -1656,16 +1657,16 @@ bool GridManager::insertSProper()
 	}
 
 
-	boundaryNodes.resize(4);
-	for (int i = 0; i < 4; i++)
-	{
-		boundaryNodes[i].m_dir = static_cast<NeighbourIndex>(i);
-	}
+	//boundaryNodes.resize(4);
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	boundaryNodes[i].m_dir = static_cast<NeighbourIndex>(i);
+	//}
 
-	if (getRectInDirection(rectangle, Utils::TOP, m_startIndex))
-		return true; //goal found in starting rectangle, path = line of sight
+	//if (getRectInDirection(rectangle, Utils::TOP, m_startIndex))
+	//	return true; //goal found in starting rectangle, path = line of sight
 
-	getRectBoundaries(rectangle, boundaryNodes);
+	//getRectBoundaries(rectangle, boundaryNodes);
 
 	//for each boundary in boundaries
 	for (auto& boundary : boundaryNodes)

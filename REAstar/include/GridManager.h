@@ -102,12 +102,6 @@ private:
 	//rea* open list
 	std::priority_queue<SearchNode*, std::vector<SearchNode*>, NodeComparer> m_openlist;
 	std::vector<SearchNode*> m_searchNodes;
-	//rectNodes vec
-	//std::vector<RectNode*> m_rectNodes;
-	//std::vector<SearchNode> m_searchNodes;
-	//std::vector<SearchNode*> m_searchNodesPtrs;
-	//std::vector<BoundaryNode> m_boundaryNodes;
-	//std::vector<BoundaryNode*> m_boundaryNodesPtrs;
 
 	//vectors
 	std::vector<GridTile*> m_grid;
