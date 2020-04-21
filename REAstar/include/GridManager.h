@@ -28,9 +28,9 @@ public:
 class NodeComparer
 {
 public:
-	bool operator()(const SearchNode& t1, const SearchNode& t2)
+	bool operator()(const SearchNode* t1, const SearchNode* t2)
 	{
-		return t1.m_minfval > t2.m_minfval;
+		return t1->m_minfval > t2->m_minfval;
 	}
 };
 
@@ -84,22 +84,24 @@ private:
 	bool rightAngleToGoal(int t_tileIndex);
 
 	//functions for finding rectangle boundaries
-	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin);
-	void getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourIndex t_direction, int t_origin, int t_limit1, int t_limit2, bool& t_goalFound);
-	int getSideBoundary(NeighbourIndex t_direction, int t_expandOrigin, int t_currentLimit, bool& t_goalFound, int t_rectOrigin);
+	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin);
+	void getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin, int& t_limit1, int& t_limit2, bool& t_goalFound);
+	int getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigin, int& t_currentLimit, bool& t_goalFound, int& t_rectOrigin);
 	void markBorderers(std::vector<int>& t_rectBorder);
-	void markFSI(std::vector<int>& t_fsi, NeighbourIndex t_dir);
-	bool tryToUpdatePoint(int t_point, NeighbourIndex t_dir);
+	void markFSI(std::vector<int>& t_fsi, NeighbourIndex& t_dir);
+	bool tryToUpdatePoint(int& t_point, NeighbourIndex& t_dir);
 
 	//new funcs
-	bool expandProper();
+	bool expandProper(SearchNode* t_cbn);
 	bool insertSProper();
-	void getRectBoundaries(std::vector<int>& t_rectBoundary, std::vector<BoundaryNode>& t_boundaries/*, NeighbourIndex t_direction, int t_origin*/);
-	std::vector<int> calcBoundary(int t_corner1, int t_corner2, NeighbourIndex t_dir);
-	bool isValidBoundary(int& t_boundary, NeighbourIndex t_directionOfBoundary);
+	void getRectBoundaries(std::vector<int>& t_rectBoundary, std::vector<BoundaryNode>& t_boundaries);
+	std::vector<int> calcBoundary(int& t_corner1, int& t_corner2, NeighbourIndex& t_dir);
+	bool isValidBoundary(int& t_boundary, NeighbourIndex& t_directionOfBoundary);
+	bool getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin);
 
 	//rea* open list
-	std::priority_queue<SearchNode, std::vector<SearchNode>, NodeComparer> m_openlist;
+	std::priority_queue<SearchNode*, std::vector<SearchNode*>, NodeComparer> m_openlist;
+	std::vector<SearchNode*> m_searchNodes;
 	//rectNodes vec
 	//std::vector<RectNode*> m_rectNodes;
 	//std::vector<SearchNode> m_searchNodes;

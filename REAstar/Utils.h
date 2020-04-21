@@ -14,6 +14,13 @@ enum class NeighbourIndex
 };
 namespace Utils
 {
-
-	const float diag = std::sqrtf(2.0f);
+	const static float DIAGONAL = std::sqrtf(2.0f);
+	static NeighbourIndex LEFT = NeighbourIndex::LEFT;
+	static NeighbourIndex RIGHT = NeighbourIndex::RIGHT;
+	static NeighbourIndex TOP = NeighbourIndex::TOP;
+	static NeighbourIndex BOTTOM = NeighbourIndex::BOTTOM;
+	static NeighbourIndex BOTTOM_LEFT = NeighbourIndex::BOTTOM_LEFT;
+	static NeighbourIndex BOTTOM_RIGHT = NeighbourIndex::BOTTOM_RIGHT;
+	static NeighbourIndex TOP_LEFT = NeighbourIndex::TOP_LEFT;
+	static NeighbourIndex TOP_RIGHT = NeighbourIndex::TOP_RIGHT;
 }
