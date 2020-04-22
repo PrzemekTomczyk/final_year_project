@@ -1399,47 +1399,102 @@ bool GridManager::expand(SearchNode* t_cbn)
 	//for each new boundary
 	if (t_cbn->m_dir == Utils::TOP)
 	{
-		BoundaryNode& westBoundary = boundaryNodes[LEFT];
-
-		//get west most point from t_cbn
-		int pw = t_cbn->m_interval[0];
-
-		float diagonal = Utils::DIAGONAL;
-
-		//move up one point
-		int p = pw - TILES_PER_ROW;
-
-		int pv = pw;
-
-		int pd = pw + 1;
-
-		while (p != westBoundary.m_boundary.at(0) - TILES_PER_ROW)
+		//west boundary
 		{
-			float octileVert = 1.0f;
-			float octileDiag = diagonal;
+			BoundaryNode& westBoundary = boundaryNodes[LEFT];
 
-			tryToUpdateWestEastBoundaryPoint(p, pv, pd, octileVert, octileDiag);
+			//get west most point from t_cbn
+			int pw = t_cbn->m_interval[0];
 
-			if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
+			float diagonal = Utils::DIAGONAL;
+
+			//move up one point
+			int p = pw - TILES_PER_ROW;
+
+			int pv = pw;
+
+			int pd = pw + 1;
+
+			while (p >= westBoundary.m_boundary.at(0))
 			{
-				m_grid.at(p)->m_mode = GridTile::ReaMode::Gpoint;
+				float octileVert = 1.0f;
+				float octileDiag = diagonal;
+
+				tryToUpdateWestEastBoundaryPoint(p, pv, pd, octileVert, octileDiag);
+
+				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
+				{
+					m_grid.at(p)->m_mode = GridTile::ReaMode::Gpoint;
+				}
+				diagonal += Utils::DIAGONAL;
+
+				p -= TILES_PER_ROW;
+				pv -= TILES_PER_ROW;
+
+				if (pd + 1 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+				{
+					pd += 1;
+
+				}
 			}
-			diagonal += Utils::DIAGONAL;
 
-			p -= TILES_PER_ROW;
-			pv -= TILES_PER_ROW;
-
-			if (pd + 1 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+			if (successor(westBoundary))
 			{
-				pd += 1;
-
+				return true;
 			}
 		}
 
-		if (successor(westBoundary))
+		//east boundary
 		{
-			return true;
+			BoundaryNode& eastBoundary = boundaryNodes[RIGHT];
+
+			//get east most point from t_cbn
+			int pe = t_cbn->m_interval[t_cbn->m_interval.size() - 1];
+
+			float diagonal = Utils::DIAGONAL;
+
+			//move up one point
+			int p = pe - TILES_PER_ROW;
+
+			int pv = pe;
+
+			int pd = pe - 1;
+
+			while (p >= eastBoundary.m_boundary.at(0))
+			{
+				float octileVert = 1.0f;
+				float octileDiag = diagonal;
+
+				tryToUpdateWestEastBoundaryPoint(p, pv, pd, octileVert, octileDiag);
+
+				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
+				{
+					m_grid.at(p)->m_mode = GridTile::ReaMode::Gpoint;
+				}
+				diagonal += Utils::DIAGONAL;
+
+				p -= TILES_PER_ROW;
+				pv -= TILES_PER_ROW;
+
+				if (pd - 1 > t_cbn->m_interval.at(0))
+				{
+					pd -= 1;
+				}
+			}
+
+			if (successor(eastBoundary))
+			{
+				return true;
+			}
 		}
+
+		//north boundary
+		{
+
+		}
+
+		//south boudary
+
 	}
 
 	return false;
