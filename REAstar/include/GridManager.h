@@ -86,7 +86,7 @@ private:
 	void markBorderers(std::vector<int>& t_rectBorder);
 	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
 	void tryToUpdateWestEastBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
-	bool tryToUpdateNorthSouthBoundaryPoint(int& t_point, int& t_leftDiagPoint, int& t_rightDiagPoint);
+	void tryToUpdateNorthSouthBoundaryPoint(int& t_point, int& t_p1, int& t_p2);
 
 	//new funcs
 	bool expand(SearchNode* t_cbn);
