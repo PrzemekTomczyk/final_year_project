@@ -67,6 +67,7 @@ private:
 	void setTestLayout();
 	void addLine(sf::Vector2f t_p1, sf::Vector2f t_p2);
 	void backTrack();
+	void setupRectCorners(std::vector<int>& t_rectCorners);
 
 	//#######################
 	//rea* functions
@@ -84,12 +85,14 @@ private:
 	bool rightAngleToGoal(int t_tileIndex);
 
 	//functions for finding rectangle boundaries
-	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin);
+	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin, bool t_expandOpposite);
 	void getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin, int& t_limit1, int& t_limit2, bool& t_goalFound);
 	int getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigin, int& t_currentLimit, bool& t_goalFound, int& t_rectOrigin);
 	void markBorderers(std::vector<int>& t_rectBorder);
 	void markFSI(std::vector<int>& t_fsi, NeighbourIndex& t_dir);
-	bool tryToUpdatePoint(int& t_point, NeighbourIndex& t_dir);
+	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
+	void tryToUpdateWestEastBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
+	bool tryToUpdateNorthSouthBoundaryPoint(int& t_point, int& t_leftDiagPoint, int& t_rightDiagPoint);
 
 	//new funcs
 	bool expandProper(SearchNode* t_cbn);
@@ -97,7 +100,7 @@ private:
 	void getRectBoundaries(std::vector<int>& t_rectBoundary, std::vector<BoundaryNode>& t_boundaries);
 	std::vector<int> calcBoundary(int& t_corner1, int& t_corner2, NeighbourIndex& t_dir);
 	bool isValidBoundary(int& t_boundary, NeighbourIndex& t_directionOfBoundary);
-	bool getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin);
+	bool getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin, bool t_expandOpposite);
 
 	//rea* open list
 	std::priority_queue<SearchNode*, std::vector<SearchNode*>, NodeComparer> m_openlist;

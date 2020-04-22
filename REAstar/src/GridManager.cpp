@@ -472,6 +472,20 @@ void GridManager::backTrack()
 	}
 }
 
+void GridManager::setupRectCorners(std::vector<int>& t_rectCorners)
+{
+	//sort corner indexes so smallest index is top left and highest is bottom right
+	std::sort(t_rectCorners.begin(), t_rectCorners.end());
+
+	//set the corners for to be ordered in order of TopLeft,TopRight,BotLeft,BotRight
+	int topLeft = t_rectCorners[0], topRight = t_rectCorners[1], botLeft = t_rectCorners[2], botRight = t_rectCorners[3];
+
+	if (m_grid.at(topRight)->getColRow().y == m_grid.at(botLeft)->getColRow().y)
+	{
+		std::swap(topRight, botLeft);
+	}
+}
+
 void GridManager::init(float t_textOffset)
 {
 	//use height of the window to make squares as the right side of the screen is used for tooltip info
@@ -600,7 +614,17 @@ void GridManager::properRea()
 {
 	std::cout << "Starting REA*..." << std::endl;
 	//Initialise
+	for (int i = m_searchNodes.size() - 1; i >= 0; i--)
+	{
+		if (m_searchNodes[i])
+		{
+			delete m_searchNodes[i];
+			m_searchNodes[i] = nullptr;
+		}
+	}
+	m_searchNodes.clear();
 	m_openlist = std::priority_queue<SearchNode*, std::vector<SearchNode*>, NodeComparer>();
+
 	m_lines.clear();
 	resetNonObstacles();
 
@@ -615,7 +639,7 @@ void GridManager::properRea()
 	while (!m_openlist.empty())
 	{
 		SearchNode* currentBestNode = m_openlist.top();
-		//m_openlist.pop();
+		m_openlist.pop();
 		if (expandProper(currentBestNode))
 		{
 			//goal has been found!
@@ -623,7 +647,6 @@ void GridManager::properRea()
 			backTrack();
 			return;
 		}
-		m_openlist.pop();
 	}
 
 	//path not found
@@ -633,7 +656,7 @@ void GridManager::properRea()
 bool GridManager::insertS(std::vector<int>& t_corners)
 {
 	NeighbourIndex startDir = NeighbourIndex::TOP;
-	bool goalFound = getRectInDirection(t_corners, startDir, m_startIndex);
+	bool goalFound = getRectInDirection(t_corners, startDir, m_startIndex, true);
 
 	std::vector<std::vector<int>> boundaries;
 
@@ -973,7 +996,7 @@ bool GridManager::rightAngleToGoal(int t_tileIndex)
 /// <param name="t_direction">direction to expand the rectangle in</param>
 /// <param name="t_origin">origin index to expand from</param>
 /// <returns>true if goal has been found in rectangle, false if not</returns>
-bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin)
+bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin, bool t_expandOpposite)
 {
 	int indexInDirection = -1;
 	int limitInDirection = -1;
@@ -984,7 +1007,7 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 	indexInDirection = t_origin;
 
 	//if there is nothing above the starting point
-	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle && !m_grid.at(indexInDirection)->getVisited() && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Goal)
+	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle/* && !m_grid.at(indexInDirection)->getVisited()*/ && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Goal)
 	{
 		//expand in the given direction
 		int tempIndex = indexInDirection;
@@ -1113,31 +1136,56 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 
 	if (!goalFound)
 	{
-		NeighbourIndex oppositeDirection;
-		int startPointIndex = t_origin;
-		switch (t_direction)
+		if (t_expandOpposite)
 		{
-		case NeighbourIndex::LEFT:
-			oppositeDirection = NeighbourIndex::RIGHT;
-			break;
-		case NeighbourIndex::RIGHT:
-			oppositeDirection = NeighbourIndex::LEFT;
-			break;
-		case NeighbourIndex::TOP:
-			oppositeDirection = NeighbourIndex::BOTTOM;
-			break;
-		case NeighbourIndex::BOTTOM:
-			oppositeDirection = NeighbourIndex::TOP;
-			break;
-		default:
-			throw std::invalid_argument("received bad direction value");
-			break;
+			NeighbourIndex oppositeDirection;
+			int startPointIndex = t_origin;
+			switch (t_direction)
+			{
+			case NeighbourIndex::LEFT:
+				oppositeDirection = NeighbourIndex::RIGHT;
+				break;
+			case NeighbourIndex::RIGHT:
+				oppositeDirection = NeighbourIndex::LEFT;
+				break;
+			case NeighbourIndex::TOP:
+				oppositeDirection = NeighbourIndex::BOTTOM;
+				break;
+			case NeighbourIndex::BOTTOM:
+				oppositeDirection = NeighbourIndex::TOP;
+				break;
+			default:
+				throw std::invalid_argument("received bad direction value");
+				break;
+			}
+			//if (startPointIndex < 0 || m_grid.at(startPointIndex)->getType() == GridTile::TileType::Obstacle || m_grid.at(startPointIndex)->getVisited())
+			//{
+			//	startPointIndex = t_origin;
+			//}
+			getRectInOpposite(t_rectBoundary, oppositeDirection, startPointIndex, sideLimit1, sideLimit2, goalFound);
 		}
-		//if (startPointIndex < 0 || m_grid.at(startPointIndex)->getType() == GridTile::TileType::Obstacle || m_grid.at(startPointIndex)->getVisited())
-		//{
-		//	startPointIndex = t_origin;
-		//}
-		getRectInOpposite(t_rectBoundary, oppositeDirection, startPointIndex, sideLimit1, sideLimit2, goalFound);
+		else
+		{
+			int corner3, corner4;
+			switch (t_direction)
+			{
+			case NeighbourIndex::LEFT:
+			case NeighbourIndex::RIGHT:
+				corner3 = m_grid.at(t_origin)->getColRow().x + (sideLimit1 * TILES_PER_ROW);
+				corner4 = m_grid.at(t_origin)->getColRow().x + (sideLimit2 * TILES_PER_ROW);
+				break;
+			case NeighbourIndex::TOP:
+			case NeighbourIndex::BOTTOM:
+				corner3 = sideLimit1 + (m_grid.at(t_origin)->getColRow().y * TILES_PER_ROW);
+				corner4 = sideLimit2 + (m_grid.at(t_origin)->getColRow().y * TILES_PER_ROW);
+				break;
+			default:
+				throw std::invalid_argument("received bad direction value");
+				break;
+			}
+			t_rectBoundary.push_back(corner3);
+			t_rectBoundary.push_back(corner4);
+		}
 	}
 	else if (m_grid.at(m_goalIndex)->getPrevious() == nullptr)
 	{
@@ -1164,7 +1212,7 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 
 	//indexInDirection = getNeighbourIndex(t_direction, t_origin);
 	//if there is nothing above the starting point
-	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle && !m_grid.at(indexInDirection)->getVisited())
+	if (indexInDirection >= 0 && m_grid.at(indexInDirection)->getType() != GridTile::TileType::Obstacle/* && !m_grid.at(indexInDirection)->getVisited()*/)
 	{
 		//expand in the given direction
 		int tempIndex = indexInDirection;
@@ -1335,7 +1383,7 @@ int GridManager::getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigi
 	while (expand && !t_goalFound)
 	{
 		tempDirectionIndex = getNeighbourIndex(t_direction, tempDirectionIndex);
-		if (tempDirectionIndex >= 0 && m_grid.at(tempDirectionIndex)->getType() != GridTile::TileType::Obstacle && m_grid.at(tempDirectionIndex)->m_mode == GridTile::ReaMode::None)
+		if (tempDirectionIndex >= 0 && m_grid.at(tempDirectionIndex)->getType() != GridTile::TileType::Obstacle/* && m_grid.at(tempDirectionIndex)->m_mode == GridTile::ReaMode::None*/)
 		{
 			//if limit is already set
 			if (limit >= 0)
@@ -1478,6 +1526,7 @@ int GridManager::getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigi
 
 void GridManager::markBorderers(std::vector<int>& t_rectBorder)
 {
+	setupRectCorners(t_rectBorder);
 	int offset = 1;
 	int index = t_rectBorder[0];
 	while (index != t_rectBorder[1] + offset)
@@ -1552,7 +1601,7 @@ void GridManager::markFSI(std::vector<int>& t_fsi, NeighbourIndex& t_dir)
 /// <param name="t_point">index of a point to try to update</param>
 /// <param name="t_dir">direction of the FSI</param>
 /// <returns>true if point has been updated, false otherwise</returns>
-bool GridManager::tryToUpdatePoint(int& t_point, NeighbourIndex& t_dir)
+bool GridManager::tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir)
 {
 	bool updated = false;
 	int diagNeighbour1 = -1;
@@ -1627,6 +1676,27 @@ bool GridManager::tryToUpdatePoint(int& t_point, NeighbourIndex& t_dir)
 	return updated;
 }
 
+void GridManager::tryToUpdateWestEastBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen)
+{
+	//point below
+	if (m_grid.at(t_point)->m_gval > m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen)
+	{
+		m_grid.at(t_point)->setPrevious(m_grid.at(t_cardinalPoint));
+		m_grid.at(t_point)->m_gval = m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen;
+	}
+	//diagonal point
+	if (m_grid.at(t_point)->m_gval > m_grid.at(t_diagonalPoint)->m_gval + t_diagLen)
+	{
+		m_grid.at(t_point)->setPrevious(m_grid.at(t_diagonalPoint));
+		m_grid.at(t_point)->m_gval = m_grid.at(t_diagonalPoint)->m_gval + t_diagLen;
+	}
+}
+
+bool GridManager::tryToUpdateNorthSouthBoundaryPoint(int& t_point, int& t_leftDiagPoint, int& t_rightDiagPoint)
+{
+	return false;
+}
+
 bool GridManager::expandProper(SearchNode* t_cbn)
 {
 	std::cout << "\tExpand..." << std::endl;
@@ -1639,20 +1709,26 @@ bool GridManager::expandProper(SearchNode* t_cbn)
 
 	std::vector<BoundaryNode> boundaryNodes;
 	int origin = t_cbn->m_minValTile->getIndex();
-	if (getRect(boundaryNodes, t_cbn->m_dir, origin))
+	if (getRect(boundaryNodes, t_cbn->m_dir, origin, false))
 	{
 		std::cout << "\t\tGoal found in a rectangle in Expand" << std::endl;
 		return true;
 	}
-	
-	if (t_cbn->m_dir == Utils::LEFT)
+
+	for (auto& boundary : boundaryNodes)
+	{
+		boundary.m_previous = t_cbn->m_minValTile;
+	}
+
+	//for each new boundary
+	if (t_cbn->m_dir == Utils::TOP)
 	{
 		BoundaryNode& westBoundary = boundaryNodes[LEFT];
 
 		//get west most point from t_cbn
 		int pw = t_cbn->m_interval[0];
 
-		int diagonal = Utils::DIAGONAL;
+		float diagonal = Utils::DIAGONAL;
 
 		//move up one point
 		int p = pw - TILES_PER_ROW;
@@ -1661,14 +1737,34 @@ bool GridManager::expandProper(SearchNode* t_cbn)
 
 		int pd = pw + 1;
 
-		//while (p != westBoundary..at(westBoundary.size() - 1])
-		//{
-		//
-		//}
+		while (p != westBoundary.m_boundary.at(0) - TILES_PER_ROW)
+		{
+			float octileVert = 1.0f;
+			float octileDiag = diagonal;
 
+			tryToUpdateWestEastBoundaryPoint(p, pv, pd, octileVert, octileDiag);
 
+			if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
+			{
+				m_grid.at(p)->m_mode = GridTile::ReaMode::Gpoint;
+			}
+			diagonal += Utils::DIAGONAL;
+
+			p -= TILES_PER_ROW;
+			pv -= TILES_PER_ROW;
+
+			if (pd + 1 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+			{
+				pd += 1;
+
+			}
+		}
+
+		if (successor(westBoundary))
+		{
+			return true;
+		}
 	}
-
 
 	return false;
 }
@@ -1678,7 +1774,7 @@ bool GridManager::insertSProper()
 	std::cout << "\tInsertS..." << std::endl;
 	std::vector<BoundaryNode> boundaryNodes;
 
-	if (getRect(boundaryNodes, Utils::TOP, m_startIndex))
+	if (getRect(boundaryNodes, Utils::TOP, m_startIndex, true))
 	{
 		std::cout << "\t\tGoal found in a rectangle in InsertS" << std::endl;
 		return true;
@@ -1769,6 +1865,7 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 	//return null
 	if (t_parentBoundary.m_fsi.size() == 0)
 	{
+		std::cout << "\t\t\t\tSuccessor Quit - FSI = 0..." << std::endl;
 		return false;
 	}
 
@@ -1783,7 +1880,7 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 
 		for (auto& point : fsi.m_interval)
 		{
-			if (tryToUpdatePoint(point, t_parentBoundary.m_dir))
+			if (tryToUpdateFsiPoint(point, t_parentBoundary.m_dir))
 			{
 				fsiUpdated = true;
 			}
@@ -1817,21 +1914,10 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 	//if a point in a FSI was updated
 	if (fsiUpdated)
 	{
-		int cheapestFSI = -1;
-		int minfval = std::numeric_limits<int>::max();
-
 		//loop through all FSIs to find cheapest one
 		for (int i = 0; i < t_parentBoundary.m_fsi.size(); i++)
 		{
-			if (t_parentBoundary.m_fsi[i].m_minfval < minfval)
-			{
-				cheapestFSI = i;
-			}
-		}
-		//if index was set then add this FSI as a new search node
-		if (cheapestFSI > -1)
-		{
-			SearchNode* PN = new SearchNode(t_parentBoundary.m_fsi[cheapestFSI]);
+			SearchNode* PN = new SearchNode(t_parentBoundary.m_fsi[i]);
 			m_searchNodes.push_back(PN);
 			m_openlist.push(PN);
 		}
@@ -2026,7 +2112,7 @@ void GridManager::calcFSI(BoundaryNode& t_parentBoundary)
 	{
 		t_parentBoundary.m_fsi.at(fsiIndex).m_interval.push_back(index);
 	}
-	else if (m_grid.at(index)->getType() != GridTile::TileType::Obstacle)
+	else if (m_grid.at(index)->getType() != GridTile::TileType::Obstacle && m_grid.at(getNeighbourIndex(diagonalCheck2, index))->getType() != GridTile::TileType::Obstacle)
 	{
 		if (fsiStarted)
 		{
@@ -2094,7 +2180,7 @@ bool GridManager::isValidBoundary(int& t_boundary, NeighbourIndex& t_directionOf
 	return false;
 }
 
-bool GridManager::getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin)
+bool GridManager::getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin, bool t_expandOpposite)
 {
 	std::vector<int> rectangle;
 	t_boundaries.resize(4);
@@ -2104,7 +2190,7 @@ bool GridManager::getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourInde
 		t_boundaries[i].m_dir = static_cast<NeighbourIndex>(i);
 	}
 
-	if (getRectInDirection(rectangle, t_dir, t_origin))
+	if (getRectInDirection(rectangle, t_dir, t_origin, t_expandOpposite))
 		return true; //goal found in rectangle
 
 	getRectBoundaries(rectangle, t_boundaries);
@@ -2115,5 +2201,5 @@ bool GridManager::getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourInde
 bool GridManager::expand(int t_cbn, std::vector<int>& t_corners)
 {
 	//std::cout << "Expanding tile: " << std::to_string(t_cbn) << std::endl;
-	return getRectInDirection(t_corners, Utils::TOP/*directionToGoal(t_cbn)*/, t_cbn);
+	return getRectInDirection(t_corners, Utils::TOP/*directionToGoal(t_cbn)*/, t_cbn, true);
 }

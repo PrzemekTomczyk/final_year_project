@@ -72,7 +72,7 @@ void GridTile::setToPath()
 
 void GridTile::setToCorner()
 {
-	if (m_type != TileType::Obstacle && m_type != TileType::Goal && m_type != TileType::Start)
+	if (m_type == TileType::None)
 	{
 		m_type = TileType::Corner;
 	}
