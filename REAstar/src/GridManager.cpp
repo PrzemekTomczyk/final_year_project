@@ -598,6 +598,7 @@ void GridManager::reaAlgorithm()
 
 void GridManager::properRea()
 {
+	std::cout << "Starting REA*..." << std::endl;
 	//Initialise
 	m_openlist = std::priority_queue<SearchNode*, std::vector<SearchNode*>, NodeComparer>();
 	m_lines.clear();
@@ -605,10 +606,8 @@ void GridManager::properRea()
 
 	if (insertSProper())
 	{
-		//goal has been found!
-		std::cout << "Goal has been found in a rectangle!" << std::endl;
+		//goal has been found, backtrack
 		backTrack();
-		//reaGridRedraw();
 		return;
 	}
 
@@ -1630,15 +1629,45 @@ bool GridManager::tryToUpdatePoint(int& t_point, NeighbourIndex& t_dir)
 
 bool GridManager::expandProper(SearchNode* t_cbn)
 {
+	std::cout << "\tExpand..." << std::endl;
+
 	if (std::find(t_cbn->m_interval.begin(), t_cbn->m_interval.end(), m_goalIndex) != t_cbn->m_interval.end())
 	{
-		std::cout << "Apparently Goal found in Expand in CBN" << std::endl;
+		std::cout << "\t\tApparently Goal found in Expand in CBN" << std::endl;
 		return true;
 	}
 
+	std::vector<BoundaryNode> boundaryNodes;
+	int origin = t_cbn->m_minValTile->getIndex();
+	if (getRect(boundaryNodes, t_cbn->m_dir, origin))
+	{
+		std::cout << "\t\tGoal found in a rectangle in Expand" << std::endl;
+		return true;
+	}
+	
+	if (t_cbn->m_dir == Utils::LEFT)
+	{
+		BoundaryNode& westBoundary = boundaryNodes[LEFT];
+
+		//get west most point from t_cbn
+		int pw = t_cbn->m_interval[0];
+
+		int diagonal = Utils::DIAGONAL;
+
+		//move up one point
+		int p = pw - TILES_PER_ROW;
+
+		int pv = pw;
+
+		int pd = pw + 1;
+
+		//while (p != westBoundary..at(westBoundary.size() - 1])
+		//{
+		//
+		//}
 
 
-
+	}
 
 
 	return false;
@@ -1646,27 +1675,14 @@ bool GridManager::expandProper(SearchNode* t_cbn)
 
 bool GridManager::insertSProper()
 {
-	std::vector<int> rectangle;
-
+	std::cout << "\tInsertS..." << std::endl;
 	std::vector<BoundaryNode> boundaryNodes;
 
 	if (getRect(boundaryNodes, Utils::TOP, m_startIndex))
 	{
-		std::cout << "Goal found in InsertS" << std::endl;
+		std::cout << "\t\tGoal found in a rectangle in InsertS" << std::endl;
 		return true;
 	}
-
-
-	//boundaryNodes.resize(4);
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	boundaryNodes[i].m_dir = static_cast<NeighbourIndex>(i);
-	//}
-
-	//if (getRectInDirection(rectangle, Utils::TOP, m_startIndex))
-	//	return true; //goal found in starting rectangle, path = line of sight
-
-	//getRectBoundaries(rectangle, boundaryNodes);
 
 	//for each boundary in boundaries
 	for (auto& boundary : boundaryNodes)
@@ -1680,14 +1696,12 @@ bool GridManager::insertSProper()
 			}
 			m_grid.at(index)->m_gval = getOctileDist(m_grid.at(index)->getColRow(), m_grid.at(m_startIndex)->getColRow());
 			m_grid.at(index)->m_mode = GridTile::ReaMode::Gpoint;
-			//m_grid.at(index)->setPrevious(m_grid.at(m_startIndex));
 		}
 	}
 
 	//left
 	if (boundaryNodes[LEFT].m_boundary.size() > 0 && isValidBoundary(boundaryNodes[LEFT].m_boundary[0], Utils::LEFT))
 	{
-		//parentRect->m_left.m_previous = m_grid.at(m_startIndex);
 		boundaryNodes[LEFT].m_previous = m_grid.at(m_startIndex);
 		if (successor(boundaryNodes[LEFT]))
 		{
@@ -1698,7 +1712,6 @@ bool GridManager::insertSProper()
 	//right
 	if (boundaryNodes[RIGHT].m_boundary.size() > 0 && isValidBoundary(boundaryNodes[RIGHT].m_boundary[0], Utils::RIGHT))
 	{
-		//parentRect->m_right.m_previous = m_grid.at(m_startIndex);
 		boundaryNodes[RIGHT].m_previous = m_grid.at(m_startIndex);
 		if (successor(boundaryNodes[RIGHT]))
 		{
@@ -1709,7 +1722,6 @@ bool GridManager::insertSProper()
 	//top
 	if (boundaryNodes[TOP].m_boundary.size() > 0 && isValidBoundary(boundaryNodes[TOP].m_boundary[0], Utils::TOP))
 	{
-		//parentRect->m_top.m_previous = m_grid.at(m_startIndex);
 		boundaryNodes[TOP].m_previous = m_grid.at(m_startIndex);
 		if (successor(boundaryNodes[TOP]))
 		{
@@ -1720,7 +1732,6 @@ bool GridManager::insertSProper()
 	//bot
 	if (boundaryNodes[BOT].m_boundary.size() > 0 && isValidBoundary(boundaryNodes[BOT].m_boundary[0], Utils::BOTTOM))
 	{
-		//parentRect->m_bot.m_previous = m_grid.at(m_startIndex);
 		boundaryNodes[BOT].m_previous = m_grid.at(m_startIndex);
 		if (successor(boundaryNodes[BOT]))
 		{
@@ -1734,6 +1745,7 @@ bool GridManager::insertSProper()
 
 bool GridManager::successor(BoundaryNode& t_parentBoundary)
 {
+	std::cout << "\t\t\tSuccessor..." << std::endl;
 	//ENI = extend neighbour interval of Parent Boundary;
 	//calculate ENI
 	calcENI(t_parentBoundary);
@@ -1760,26 +1772,9 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 		return false;
 	}
 
-	bool itering = true; //not used atm
-	int index = t_parentBoundary.m_fsi.at(0).m_interval.at(0);
-	int offset = 1;
-	bool updated = false; //not used atm
-
-	switch (t_parentBoundary.m_dir)
-	{
-	case NeighbourIndex::LEFT:
-	case NeighbourIndex::RIGHT:
-		offset = TILES_PER_ROW;
-		break;
-	case NeighbourIndex::TOP:
-	case NeighbourIndex::BOTTOM:
-		offset = 1;
-		break;
-	default:
-		break;
-	}
-
+	//used to check if a FSI was updated at all
 	bool fsiUpdated = false;
+
 	//loop through every FreeSubInterval
 	for (auto& fsi : t_parentBoundary.m_fsi)
 	{
@@ -1788,8 +1783,6 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 
 		for (auto& point : fsi.m_interval)
 		{
-			//m_grid.at(point)->m_gval = getOctileDist(m_grid.at(point).getPos(), t_parentBoundary.);
-
 			if (tryToUpdatePoint(point, t_parentBoundary.m_dir))
 			{
 				fsiUpdated = true;
@@ -1805,17 +1798,19 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 				fsi.m_minfval = m_grid.at(point)->m_fval;
 				fsi.m_minValTile = m_grid.at(point);
 			}
-
 		}
 
-		//if goal is inside FSI
-		if (std::find(fsi.m_interval.begin(), fsi.m_interval.end(), m_goalIndex) != fsi.m_interval.end())
-		{
-			//goal's fval is not greater than (PP) parent search node's minfval
-			if (t_parentBoundary.m_previous != nullptr && m_grid.at(m_goalIndex)->m_fval <= t_parentBoundary.m_previous->m_fval)
-			{//check later if working####################################################################################################################
-				std::cout << "Apparently Goal found" << std::endl;
-				return true;
+		//#########################################################################
+		{//this might not be functioning as expected
+			//if goal is inside FSI
+			if (std::find(fsi.m_interval.begin(), fsi.m_interval.end(), m_goalIndex) != fsi.m_interval.end())
+			{
+				//goal's fval is not greater than (PP) parent search node's minfval
+				if (t_parentBoundary.m_previous != nullptr && m_grid.at(m_goalIndex)->m_fval <= t_parentBoundary.m_previous->m_fval)
+				{
+					std::cout << "\t\t\t\tApparently Goal found in FSI" << std::endl;
+					return true;
+				}
 			}
 		}
 	}
