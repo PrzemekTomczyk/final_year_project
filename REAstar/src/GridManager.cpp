@@ -1489,9 +1489,16 @@ bool GridManager::expand(SearchNode* t_cbn)
 		}
 
 		//north boundary
-		{
+		//{
+		//	BoundaryNode& northBoundary = boundaryNodes[TOP];
 
-		}
+		//	for (auto& p : northBoundary.m_boundary)
+		//	{
+		//		float dis = t_cbn->m_minValTile->getColRow().y - m_grid.at(p)->getColRow().y;
+
+		//		int p2 = dis
+		//	}
+		//}
 
 		//south boudary
 
@@ -1891,7 +1898,7 @@ std::vector<int> GridManager::calcBoundary(int& t_corner1, int& t_corner2, Neigh
 		break;
 	}
 
-	while (index <= t_corner2/* + offset*/)
+	while (index > -1 && index < MAX_TILES && index <= t_corner2/* + offset*/)
 	{
 		boundary.push_back(index);
 		index += offset;
