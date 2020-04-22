@@ -49,7 +49,6 @@ public:
 	int getGoalIndex();
 	void setToPath(int t_index);
 	void reaAlgorithm();
-	void properRea();
 
 private:
 	void handleInput();
@@ -71,36 +70,33 @@ private:
 
 	//#######################
 	//rea* functions
-	bool insertS(std::vector<int>& t_corners);
-	bool expand(int t_cbn, std::vector<int>& t_corners);
 	bool successor(BoundaryNode& t_parentBoundary);
 	void calcENI(BoundaryNode& t_parentBoundary);
 	void calcFSI(BoundaryNode& t_parentBoundary);
 	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
 	float getOctileDist(sf::Vector2i t_p1, sf::Vector2i t_p2);
 	void calculateRectangleNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current);
-	void markNeighbours(NeighbourIndex t_neighboursInDirection, GridTile* t_current, int t_corner1, int t_corner2, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq);
-	void markDiagonal(NeighbourIndex t_direction, GridTile* t_current, int t_corner, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq);
 	NeighbourIndex directionToGoal(int t_tileIndex);
 	bool rightAngleToGoal(int t_tileIndex);
 
 	//functions for finding rectangle boundaries
-	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin, bool t_expandOpposite);
+	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin, bool t_expandOpposite, int t_sideLimit1, int t_sideLimit2);
 	void getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin, int& t_limit1, int& t_limit2, bool& t_goalFound);
 	int getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigin, int& t_currentLimit, bool& t_goalFound, int& t_rectOrigin);
 	void markBorderers(std::vector<int>& t_rectBorder);
-	void markFSI(std::vector<int>& t_fsi, NeighbourIndex& t_dir);
 	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
 	void tryToUpdateWestEastBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
 	bool tryToUpdateNorthSouthBoundaryPoint(int& t_point, int& t_leftDiagPoint, int& t_rightDiagPoint);
 
 	//new funcs
-	bool expandProper(SearchNode* t_cbn);
-	bool insertSProper();
+	bool expand(SearchNode* t_cbn);
+	bool insertS();
 	void getRectBoundaries(std::vector<int>& t_rectBoundary, std::vector<BoundaryNode>& t_boundaries);
 	std::vector<int> calcBoundary(int& t_corner1, int& t_corner2, NeighbourIndex& t_dir);
 	bool isValidBoundary(int& t_boundary, NeighbourIndex& t_directionOfBoundary);
-	bool getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin, bool t_expandOpposite);
+	bool getStartRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin);
+	bool getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin, std::vector<int>& t_fsiInterval);
+	int getCurrentSideLimit(NeighbourIndex& t_expandDir, int& t_origin, std::vector<int>& t_interval, NeighbourIndex& t_sideDirection);
 
 	//rea* open list
 	std::priority_queue<SearchNode*, std::vector<SearchNode*>, NodeComparer> m_openlist;
