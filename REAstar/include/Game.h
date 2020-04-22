@@ -58,7 +58,7 @@ private:
 	void renderingThread();
 	void processScreenEvents();
 	void setupGrid();
-	void imguiUpdate(sf::Time t_deltaTime);
+	//void imguiUpdate(sf::Time t_deltaTime);
 
 	void initLayout();
 

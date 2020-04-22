@@ -75,7 +75,6 @@ private:
 	void calcFSI(BoundaryNode& t_parentBoundary);
 	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
 	float getOctileDist(sf::Vector2i t_p1, sf::Vector2i t_p2);
-	void calculateRectangleNeighbours(std::vector<int>& t_corners, std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer>& t_pq, GridTile* t_current);
 	NeighbourIndex directionToGoal(int t_tileIndex);
 	bool rightAngleToGoal(int t_tileIndex);
 
@@ -85,8 +84,9 @@ private:
 	int getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigin, int& t_currentLimit, bool& t_goalFound, int& t_rectOrigin);
 	void markBorderers(std::vector<int>& t_rectBorder);
 	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
-	void tryToUpdateWestEastBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
-	void tryToUpdateNorthSouthBoundaryPoint(int& t_point, int& t_p1, int& t_p2);
+	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
+	void tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, float& t_octileP1, float& t_octileP2);
+	bool processBoundaries(SearchNode* t_cbn, BoundaryNode& t_wall1, BoundaryNode& t_wall2, BoundaryNode& t_wall3);
 
 	//new funcs
 	bool expand(SearchNode* t_cbn);
