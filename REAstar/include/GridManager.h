@@ -85,6 +85,7 @@ private:
 	void markBorderers(std::vector<int>& t_rectBorder);
 	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
 	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
+	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen, BoundaryNode& t_boundary);
 	void tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, float& t_octileP1, float& t_octileP2);
 	bool processBoundaries(SearchNode* t_cbn, BoundaryNode& t_wall1, BoundaryNode& t_wall2, BoundaryNode& t_wall3);
 
