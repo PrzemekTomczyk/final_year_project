@@ -53,39 +53,42 @@ void Game::processEvents()
 	processScreenEvents();
 	while (m_window.pollEvent(event))
 	{
-		if (sf::Event::Closed == event.type) // window message
+		if (m_window.hasFocus())
 		{
-			m_window.close();
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
-		{
-			m_exitGame = true;
-		}
-		if (sf::Event::KeyPressed == event.type)
-		{
-			if (!m_loadLayout)
+			if (sf::Event::Closed == event.type) // window message
 			{
-				if (event.key.code == sf::Keyboard::F1)
+				m_window.close();
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+			{
+				m_exitGame = true;
+			}
+			if (sf::Event::KeyPressed == event.type)
+			{
+				if (!m_loadLayout)
 				{
-					m_loadLayout = true;
-					m_layout = GridLayout::TEST;
-					initLayout();
-				}
-				if (event.key.code == sf::Keyboard::F2)
-				{
-					m_loadLayout = true;
-					m_layout = GridLayout::SANDBOX;
-					initLayout();
+					if (event.key.code == sf::Keyboard::F1)
+					{
+						m_loadLayout = true;
+						m_layout = GridLayout::TEST;
+						initLayout();
+					}
+					if (event.key.code == sf::Keyboard::F2)
+					{
+						m_loadLayout = true;
+						m_layout = GridLayout::SANDBOX;
+						initLayout();
+					}
 				}
 			}
-		}
-		else if (sf::Event::KeyReleased == event.type)
-		{
-			if (m_loadLayout)
+			else if (sf::Event::KeyReleased == event.type)
 			{
-				if (event.key.code == sf::Keyboard::F1 || event.key.code == sf::Keyboard::F2)
+				if (m_loadLayout)
 				{
-					m_loadLayout = false;
+					if (event.key.code == sf::Keyboard::F1 || event.key.code == sf::Keyboard::F2)
+					{
+						m_loadLayout = false;
+					}
 				}
 			}
 		}

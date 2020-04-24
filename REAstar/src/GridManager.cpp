@@ -441,8 +441,23 @@ void GridManager::addLine(sf::Vector2f t_p1, sf::Vector2f t_p2)
 	m_lines.push_back(vertex2);
 }
 
+void GridManager::addLine(sf::Vector2f t_p1, sf::Vector2f t_p2, sf::Color t_colour)
+{
+	sf::Vertex vertex1;
+	sf::Vertex vertex2;
+
+	vertex1 = sf::Vertex(t_p1);
+	vertex2 = sf::Vertex(t_p2);
+	vertex1.color = t_colour;
+	vertex2.color = t_colour;
+
+	m_lines.push_back(vertex1);
+	m_lines.push_back(vertex2);
+}
+
 void GridManager::backTrack()
 {
+	m_lines.clear();
 	if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {
 		GridTile* ptr = m_grid.at(m_goalIndex);
 
@@ -465,6 +480,43 @@ void GridManager::backTrack()
 		//throw std::invalid_argument("goal's previous ptr not set!");
 		std::cout << "goal's previous ptr not set!" << std::endl;
 	}
+}
+
+void GridManager::backTrackFrom(int& t_point)
+{
+	if (m_grid.at(t_point)->getPrevious() != nullptr) {
+		GridTile* ptr = m_grid.at(t_point);
+
+		int col1, col2, col3;
+		col1 = rand() % 255;
+		col2 = rand() % 255;
+		col3 = rand() % 255;
+
+
+		//add all nodes with previous to the path
+		while (nullptr != ptr->getPrevious())
+		{
+			//if (ptr != m_grid.at(m_goalIndex) && ptr != m_grid.at(m_startIndex))
+			//{
+			//	ptr->setToPath();
+			//}
+
+			addLine(ptr->getPos(), ptr->getPrevious()->getPos(), sf::Color(col1, col2, col3, 255));
+
+			ptr = ptr->getPrevious();
+
+			for (int i = 0; i < m_lines.size(); i++)
+			{
+				m_window.draw(&m_lines[0], m_lines.size(), sf::Lines);
+			}
+		}
+	}
+	//else
+	//{
+	//	//reaGridRedraw();
+	//	//throw std::invalid_argument("goal's previous ptr not set!");
+	//	std::cout << "goal's previous ptr not set!" << std::endl;
+	//}
 }
 
 void GridManager::setupRectCorners(std::vector<int>& t_rectCorners)
@@ -540,25 +592,20 @@ void GridManager::reaAlgorithm()
 		//goal has been found, backtrack
 		backTrack();
 		return;
-	}
+}
+#ifndef _DEBUG
 	std::this_thread::sleep_for(std::chrono::milliseconds(250));
-#ifdef _DEBUG
-	//reaGridRedraw();
+#elif _DEBUG
+	reaGridRedraw();
 #endif // _DEBUG
-
 
 	SearchNode* currentBestNode;
-	//current best node CBN
-	//int index = 0;
-	while (/*index < m_searchNodes.size()*/!m_openlist.empty())
+	while (!m_openlist.empty())
 	{
-#ifdef _DEBUG
-		//reaGridRedraw();
-#endif // _DEBUG
+		//current best node CBN
 		currentBestNode = m_openlist.top();
 		m_openlist.pop();
-		//currentBestNode = m_searchNodes.at(index);
-		//index++;
+
 		if (expand(currentBestNode))
 		{
 			//goal has been found!
@@ -566,7 +613,11 @@ void GridManager::reaAlgorithm()
 			backTrack();
 			return;
 		}
+#ifndef _DEBUG
 		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+#elif _DEBUG
+		reaGridRedraw();
+#endif // _DEBUG
 	}
 
 	//path not found
@@ -1365,104 +1416,86 @@ bool GridManager::tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir)
 	return updated;
 }
 
-void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen)
-{
-	//point below
-	if (t_point != t_cardinalPoint && m_grid.at(t_point)->m_gval > m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen)
-	{
-		m_grid.at(t_point)->setPrevious(m_grid.at(t_cardinalPoint));
-		m_grid.at(t_point)->m_gval = m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen;
-	}
-	//diagonal point
-	if (t_point != t_diagonalPoint && m_grid.at(t_point)->m_gval > m_grid.at(t_diagonalPoint)->m_gval + t_diagLen)
-	{
-		m_grid.at(t_point)->setPrevious(m_grid.at(t_diagonalPoint));
-		m_grid.at(t_point)->m_gval = m_grid.at(t_diagonalPoint)->m_gval + t_diagLen;
-	}
-}
+//void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen)
+//{
+//	//point below
+//	if (t_point != t_cardinalPoint && m_grid.at(t_point)->m_gval > m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen)
+//	{
+//		m_grid.at(t_point)->setPrevious(m_grid.at(t_cardinalPoint));
+//		m_grid.at(t_point)->m_gval = m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen;
+//	}
+//	//diagonal point
+//	if (t_point != t_diagonalPoint && m_grid.at(t_point)->m_gval > m_grid.at(t_diagonalPoint)->m_gval + t_diagLen)
+//	{
+//		m_grid.at(t_point)->setPrevious(m_grid.at(t_diagonalPoint));
+//		m_grid.at(t_point)->m_gval = m_grid.at(t_diagonalPoint)->m_gval + t_diagLen;
+//	}
+//}
 
-void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen, BoundaryNode& t_boundary)
+void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen, SearchNode* t_cbn, NeighbourIndex& t_boundaryDir)
 {
 	bool updatedCardinal = false;
-	if (t_diagonalPoint == -1 || m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen < m_grid.at(t_diagonalPoint)->m_gval + t_cardinalLen)
+	GridTile* previous = nullptr;/*m_grid.at(t_point)->getPrevious();*/
+	if (t_diagonalPoint == -1)
 	{
-		m_grid.at(t_point)->setPrevious(m_grid.at(t_cardinalPoint));
+		if (m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen < m_grid.at(t_point)->m_gval)
+		{
+			//m_grid.at(t_point)->setPrevious(m_grid.at(t_cardinalPoint));
+			previous = m_grid.at(t_cardinalPoint);
+			m_grid.at(t_point)->m_gval = m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen;
+			updatedCardinal = true;
+		}
+	}
+	else if (m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen < m_grid.at(t_diagonalPoint)->m_gval + t_diagLen)
+	{
+		previous = m_grid.at(t_cardinalPoint);
 		m_grid.at(t_point)->m_gval = m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen;
 		updatedCardinal = true;
 	}
-	else
+	else if (m_grid.at(t_diagonalPoint)->m_gval + t_diagLen < m_grid.at(t_point)->m_gval)
 	{
-		m_grid.at(t_point)->setPrevious(m_grid.at(t_diagonalPoint));
+		//m_grid.at(t_point)->setPrevious(m_grid.at(t_diagonalPoint));
+		previous = m_grid.at(t_diagonalPoint);
 		m_grid.at(t_point)->m_gval = m_grid.at(t_diagonalPoint)->m_gval + t_diagLen;
 	}
 
-
-
-
-
-
-
-
-
-	////point below
-	//if (t_point != t_cardinalPoint && m_grid.at(t_point)->m_gval > m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen)
-	//{
-	//	m_grid.at(t_point)->setPrevious(m_grid.at(t_cardinalPoint));
-	//	m_grid.at(t_point)->m_gval = m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen;
-	//	updatedCardinal = true;
-	//}
-	////diagonal point
-	//if (t_point != t_diagonalPoint && m_grid.at(t_point)->m_gval > m_grid.at(t_diagonalPoint)->m_gval + t_diagLen)
-	//{
-	//	m_grid.at(t_point)->setPrevious(m_grid.at(t_diagonalPoint));
-	//	m_grid.at(t_point)->m_gval = m_grid.at(t_diagonalPoint)->m_gval + t_diagLen;
-	//	updatedCardinal = false;
-	//}
-
-	if (updatedCardinal)
+	if (updatedCardinal && previous)
 	{
-		GridTile* previous = m_grid.at(t_point)->getPrevious();
-		while (previous->getIndex() >= t_boundary.m_boundary[0] && previous->getIndex() <= t_boundary.m_boundary[t_boundary.m_boundary.size() - 1])
+		bool looping = true;
+
+		while (previous && std::find(t_cbn->m_interval.begin(), t_cbn->m_interval.end(), previous->getIndex()) == t_cbn->m_interval.end())
 		{
-			if (previous->getIndex() <= t_boundary.m_boundary[0] || previous->getIndex() >= t_boundary.m_boundary[t_boundary.m_boundary.size() - 1])
-			{
-				m_grid.at(t_point)->setPrevious(previous);
-				break;
-			}
-			else if (previous->getPrevious())
-			{
-				previous = previous->getPrevious();
-			}
+			previous = previous->getPrevious();
 		}
 	}
+	if (previous)
+	{
+		m_grid.at(t_point)->setPrevious(previous);
+		backTrackFrom(t_point);
+	}
+
 }
 
 void GridManager::tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, float& t_octileP1, float& t_octileP2)
 {
-	if (m_grid.at(t_p1)->m_gval + t_octileP1 < m_grid.at(t_p2)->m_gval + t_octileP2)
+	if (t_p1 > -1 && t_point != t_p1 &&
+		(
+		(t_p2 == -1 && m_grid.at(t_p1)->m_gval + t_octileP1 < m_grid.at(t_point)->m_gval) ||
+			(m_grid.at(t_p1)->m_gval + t_octileP1 < m_grid.at(t_p2)->m_gval + t_octileP2)
+			)
+		)
 	{
 		m_grid.at(t_point)->setPrevious(m_grid.at(t_p1));
 		m_grid.at(t_point)->m_gval = m_grid.at(t_p1)->m_gval + t_octileP1;
 	}
-	else
+	else if (t_p2 > -1 && t_point != t_p2 && m_grid.at(t_p2)->m_gval + t_octileP2 < m_grid.at(t_point)->m_gval)
 	{
 		m_grid.at(t_point)->setPrevious(m_grid.at(t_p2));
 		m_grid.at(t_point)->m_gval = m_grid.at(t_p2)->m_gval + t_octileP2;
 	}
-
-	//for the first time this is called on a point, p1 and p2 will be the same tile
-
-	//point diagonally left
-	//if (t_point != t_p1 && m_grid.at(t_point)->m_gval > t_octileP1)
+	//else
 	//{
-	//	m_grid.at(t_point)->setPrevious(m_grid.at(t_p1));
-	//	m_grid.at(t_point)->m_gval = t_octileP1;
-	//}
-	////point diagonally right
-	//if (t_point != t_p2 && m_grid.at(t_point)->m_gval > t_octileP2)
-	//{
-	//	m_grid.at(t_point)->setPrevious(m_grid.at(t_p2));
-	//	m_grid.at(t_point)->m_gval = t_octileP2;
+	//	throw std::invalid_argument("Cannot calc previous");
 	//}
 }
 
@@ -1486,13 +1519,17 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 			int pv = pw;
 
 			int pd = pw + 1;
+			if (pd > t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+			{
+				pd = -1;
+			}
 
 			while (p >= westBoundary.m_boundary.at(0))
 			{
 				float octileVert = 1.0f;
 				float octileDiag = diagonal;
 
-				tryToUpdateSideBoundaryPoint(p, pv, pd, octileVert, octileDiag, westBoundary);
+				tryToUpdateSideBoundaryPoint(p, pv, pd, octileVert, octileDiag, t_cbn, westBoundary.m_dir);
 
 				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
 				{
@@ -1504,7 +1541,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				pv -= TILES_PER_ROW;
 
 				//this might not be correct.........
-				if (pd < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+				if (pd > -1 && pd < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
 				{
 					pd += 1;
 				}
@@ -1534,13 +1571,17 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 			int pv = pe;
 
 			int pd = pe - 1;
+			if (pd < t_cbn->m_interval.at(0))
+			{
+				pd = -1;
+			}
 
 			while (p >= eastBoundary.m_boundary.at(0))
 			{
 				float octileVert = 1.0f;
 				float octileDiag = diagonal;
 
-				tryToUpdateSideBoundaryPoint(p, pv, pd, octileVert, octileDiag);
+				tryToUpdateSideBoundaryPoint(p, pv, pd, octileVert, octileDiag, t_cbn, eastBoundary.m_dir);
 
 				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
 				{
@@ -1551,7 +1592,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				p -= TILES_PER_ROW;
 				pv -= TILES_PER_ROW;
 
-				if (pd > t_cbn->m_interval.at(0))
+				if (pd > -1 && pd > t_cbn->m_interval.at(0))
 				{
 					pd -= 1;
 				}
@@ -1578,7 +1619,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				int p1 = p + dis * TILES_PER_ROW;
 				int p2 = p1;
 
-				while (dis <= Utils::DIAGONAL * (t_cbn->m_minValTile->getColRow().y - m_grid.at(p)->getColRow().y))
+				while (dis <= Utils::DIAGONAL * (t_cbn->m_minValTile->getColRow().y - m_grid.at(p)->getColRow().y) && p1 > -1 && p2 > -1)
 				{
 					float octilePP1 = dis;
 					float octilePP2 = dis;
@@ -1591,7 +1632,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 					}
 
 					dis += (Utils::DIAGONAL - 1.0f);
-					if (p1 > t_cbn->m_interval.at(0))
+					if (p1 > -1 && p1 > t_cbn->m_interval.at(0))
 					{
 						p1--;
 					}
@@ -1599,7 +1640,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 					{
 						p1 = -1;
 					}
-					if (p2 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+					if (p2 > -1 && p2 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
 					{
 						p2++;
 					}
@@ -1634,13 +1675,17 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 
 			//move right one point
 			int pd = pw + 1;
+			if (pd > t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+			{
+				pd = -1;
+			}
 
 			while (p <= westBoundary.m_boundary.at(westBoundary.m_boundary.size() - 1))
 			{
 				float octileVert = 1.0f;
 				float octileDiag = diagonal;
 
-				tryToUpdateSideBoundaryPoint(p, pv, pd, octileVert, octileDiag);
+				tryToUpdateSideBoundaryPoint(p, pv, pd, octileVert, octileDiag, t_cbn, westBoundary.m_dir);
 
 				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
 				{
@@ -1651,9 +1696,13 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				p += TILES_PER_ROW;
 				pv += TILES_PER_ROW;
 
-				if (pd < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+				if (pd > -1 && pd < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
 				{
 					pd += 1;
+				}
+				else
+				{
+					pd = -1;
 				}
 			}
 
@@ -1679,13 +1728,17 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 
 			//move left one point
 			int pd = pe - 1;
+			if (pd < t_cbn->m_interval.at(0))
+			{
+				pd = -1;
+			}
 
 			while (p <= eastBoundary.m_boundary.at(eastBoundary.m_boundary.size() - 1))
 			{
 				float octileVert = 1.0f;
 				float octileDiag = diagonal;
 
-				tryToUpdateSideBoundaryPoint(p, pv, pd, octileVert, octileDiag);
+				tryToUpdateSideBoundaryPoint(p, pv, pd, octileVert, octileDiag, t_cbn, eastBoundary.m_dir);
 
 				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
 				{
@@ -1696,9 +1749,13 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				p += TILES_PER_ROW;
 				pv += TILES_PER_ROW;
 
-				if (pd > t_cbn->m_interval.at(0))
+				if (pd > -1 && pd > t_cbn->m_interval.at(0))
 				{
 					pd -= 1;
+				}
+				else
+				{
+					pd = -1;
 				}
 			}
 
@@ -1719,7 +1776,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				int p1 = p - dis * TILES_PER_ROW;
 				int p2 = p1;
 
-				while (dis <= Utils::DIAGONAL * (m_grid.at(p)->getColRow().y - t_cbn->m_minValTile->getColRow().y))
+				while (dis <= Utils::DIAGONAL * (m_grid.at(p)->getColRow().y - t_cbn->m_minValTile->getColRow().y) && p1 > -1 && p2 > -1)
 				{
 					float octilePP1 = dis;
 					float octilePP2 = dis;
@@ -1732,13 +1789,21 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 					}
 
 					dis += (Utils::DIAGONAL - 1.0f);
-					if (p1 > t_cbn->m_interval.at(0))
+					if (p1 > -1 && p1 > t_cbn->m_interval.at(0))
 					{
 						p1--;
 					}
-					if (p2 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+					else
+					{
+						p1 = -1;
+					}
+					if (p2 > -1 && p2 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
 					{
 						p2++;
+					}
+					else
+					{
+						p2 = -1;
 					}
 				}
 			}
@@ -1768,13 +1833,17 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 
 			//move DOWN one point
 			int pd = pn + TILES_PER_ROW;
+			if (pd > t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+			{
+				pd = -1;
+			}
 
 			while (p >= northBoundary.m_boundary.at(0))
 			{
 				float octileVert = 1.0f;
 				float octileDiag = diagonal;
 
-				tryToUpdateSideBoundaryPoint(p, ph, pd, octileVert, octileDiag);
+				tryToUpdateSideBoundaryPoint(p, ph, pd, octileVert, octileDiag, t_cbn, northBoundary.m_dir);
 
 				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
 				{
@@ -1785,9 +1854,13 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				p -= 1;
 				ph -= 1;
 
-				if (pd < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+				if (pd > -1 && pd < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
 				{
 					pd += TILES_PER_ROW;
+				}
+				else
+				{
+					pd = -1;
 				}
 			}
 
@@ -1814,13 +1887,17 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 
 			//move UP one point
 			int pd = ps - TILES_PER_ROW;
+			if (pd < t_cbn->m_interval.at(0))
+			{
+				pd = -1;
+			}
 
 			while (p >= southBoundary.m_boundary.at(0))
 			{
 				float octileVert = 1.0f;
 				float octileDiag = diagonal;
 
-				tryToUpdateSideBoundaryPoint(p, ph, pd, octileVert, octileDiag);
+				tryToUpdateSideBoundaryPoint(p, ph, pd, octileVert, octileDiag, t_cbn, southBoundary.m_dir);
 
 				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
 				{
@@ -1831,9 +1908,13 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				p -= 1;
 				ph -= 1;
 
-				if (pd > t_cbn->m_interval.at(0))
+				if (pd > -1 && pd > t_cbn->m_interval.at(0))
 				{
 					pd -= TILES_PER_ROW;
+				}
+				else
+				{
+					pd = -1;
 				}
 			}
 
@@ -1854,7 +1935,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				int p1 = p + dis;
 				int p2 = p1;
 
-				while (dis <= Utils::DIAGONAL * (t_cbn->m_minValTile->getColRow().x - m_grid.at(p)->getColRow().x))
+				while (dis <= Utils::DIAGONAL * (t_cbn->m_minValTile->getColRow().x - m_grid.at(p)->getColRow().x) && p1 > -1 && p2 > -1)
 				{
 					float octilePP1 = dis;
 					float octilePP2 = dis;
@@ -1867,13 +1948,21 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 					}
 
 					dis += (Utils::DIAGONAL - 1.0f);
-					if (p1 > t_cbn->m_interval.at(0))
+					if (p1 > -1 && p1 > t_cbn->m_interval.at(0))
 					{
 						p1 -= TILES_PER_ROW;
 					}
-					if (p2 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+					else
+					{
+						p1 = -1;
+					}
+					if (p2 > -1 && p2 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
 					{
 						p2 += TILES_PER_ROW;
+					}
+					else
+					{
+						p2 = -1;
 					}
 				}
 			}
@@ -1903,13 +1992,17 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 
 			//move DOWN one point
 			int pd = pn + TILES_PER_ROW;
+			if (pd > t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+			{
+				pd = -1;
+			}
 
 			while (p <= northBoundary.m_boundary.at(northBoundary.m_boundary.size() - 1))
 			{
 				float octileVert = 1.0f;
 				float octileDiag = diagonal;
 
-				tryToUpdateSideBoundaryPoint(p, ph, pd, octileVert, octileDiag);
+				tryToUpdateSideBoundaryPoint(p, ph, pd, octileVert, octileDiag, t_cbn, northBoundary.m_dir);
 
 				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
 				{
@@ -1920,9 +2013,13 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				p += 1;
 				ph += 1;
 
-				if (pd < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+				if (pd > -1 && pd < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
 				{
 					pd += TILES_PER_ROW;
+				}
+				else
+				{
+					pd = -1;
 				}
 			}
 
@@ -1949,13 +2046,17 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 
 			//move UP one point
 			int pd = ps - TILES_PER_ROW;
+			if (pd < t_cbn->m_interval.at(0))
+			{
+				pd = -1;
+			}
 
 			while (p <= southBoundary.m_boundary.at(southBoundary.m_boundary.size() - 1))
 			{
 				float octileVert = 1.0f;
 				float octileDiag = diagonal;
 
-				tryToUpdateSideBoundaryPoint(p, ph, pd, octileVert, octileDiag);
+				tryToUpdateSideBoundaryPoint(p, ph, pd, octileVert, octileDiag, t_cbn, southBoundary.m_dir);
 
 				if (m_grid.at(p)->m_mode != GridTile::ReaMode::Hpoint)
 				{
@@ -1966,9 +2067,13 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				p += 1;
 				ph += 1;
 
-				if (pd > t_cbn->m_interval.at(0))
+				if (pd > -1 && pd > t_cbn->m_interval.at(0))
 				{
 					pd -= TILES_PER_ROW;
+				}
+				else
+				{
+					pd = -1;
 				}
 			}
 
@@ -1989,7 +2094,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 				int p1 = p - dis;
 				int p2 = p1;
 
-				while (dis <= Utils::DIAGONAL * (m_grid.at(p)->getColRow().x - t_cbn->m_minValTile->getColRow().x))
+				while (dis <= Utils::DIAGONAL * (m_grid.at(p)->getColRow().x - t_cbn->m_minValTile->getColRow().x) && p1 > -1 && p2 > -1)
 				{
 					float octilePP1 = dis;
 					float octilePP2 = dis;
@@ -2002,13 +2107,21 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 					}
 
 					dis += (Utils::DIAGONAL - 1.0f);
-					if (p1 > t_cbn->m_interval.at(0))
+					if (p1 > -1 && p1 > t_cbn->m_interval.at(0))
 					{
 						p1 -= TILES_PER_ROW;
 					}
-					if (p2 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
+					else
+					{
+						p1 = -1;
+					}
+					if (p2 > -1 && p2 < t_cbn->m_interval.at(t_cbn->m_interval.size() - 1))
 					{
 						p2 += TILES_PER_ROW;
+					}
+					else
+					{
+						p2 = -1;
 					}
 				}
 			}
@@ -2402,15 +2515,16 @@ void GridManager::calcFSI(BoundaryNode& t_parentBoundary)
 
 		index += offset;
 	}
-	if (static_cast<int>(cornerCheck2) != -1 &&
-		t_parentBoundary.m_eni.at(t_parentBoundary.m_eni.size() - 1) ==
-		getNeighbourIndex(cornerCheck2, t_parentBoundary.m_boundary.at(t_parentBoundary.m_boundary.size() - 1)) && //check if this is a special case
-		m_grid.at(index)->getType() != GridTile::TileType::Obstacle &&
-		m_grid.at(getNeighbourIndex(diagonalCheck2, index))->getType() != GridTile::TileType::Obstacle)
+	if (t_parentBoundary.m_eni.at(t_parentBoundary.m_eni.size() - 1) ==
+		getNeighbourIndex(cornerCheck2, t_parentBoundary.m_boundary.at(t_parentBoundary.m_boundary.size() - 1))) //check if this is a special case		
 	{
-		t_parentBoundary.m_fsi.at(fsiIndex).m_interval.push_back(index);
+		if (m_grid.at(index)->getType() != GridTile::TileType::Obstacle &&
+			m_grid.at(getNeighbourIndex(diagonalCheck2, index))->getType() != GridTile::TileType::Obstacle)
+		{
+			t_parentBoundary.m_fsi.at(fsiIndex).m_interval.push_back(index);
+		}
 	}
-	else if (m_grid.at(index)->getType() != GridTile::TileType::Obstacle && m_grid.at(getNeighbourIndex(diagonalCheck2, index))->getType() != GridTile::TileType::Obstacle)
+	else if (m_grid.at(index)->getType() != GridTile::TileType::Obstacle)
 	{
 		if (fsiStarted)
 		{

@@ -15,3 +15,8 @@ SearchNode::SearchNode(int t_start, NeighbourIndex t_dir)
 	m_dir = t_dir;
 	m_minfval = std::numeric_limits<int>::max();
 }
+
+float SearchNode::getFval() const
+{
+	return m_minfval;
+}

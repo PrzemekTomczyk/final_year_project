@@ -14,4 +14,6 @@ public:
 	float m_minfval;
 	GridTile* m_minValTile = nullptr;
 	GridTile* m_previous = nullptr;
+
+	float getFval() const;
 };

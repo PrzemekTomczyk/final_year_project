@@ -61,19 +61,22 @@ void Game::processEvents()
 	processScreenEvents();
 	while (m_window.pollEvent(event))
 	{
-		//ImGui::SFML::ProcessEvent(event);
-		if (sf::Event::Resized == event.type)
+		if (m_window.hasFocus())
 		{
-			sf::FloatRect visibleArea(0, 0, static_cast<float>(event.size.width), static_cast<float>(event.size.height));
-			m_window.setView(sf::View(visibleArea));
-		}
-		if (sf::Event::Closed == event.type) // window message
-		{
-			m_window.close();
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
-		{
-			m_exitGame = true;
+			//ImGui::SFML::ProcessEvent(event);
+			if (sf::Event::Resized == event.type)
+			{
+				sf::FloatRect visibleArea(0, 0, static_cast<float>(event.size.width), static_cast<float>(event.size.height));
+				m_window.setView(sf::View(visibleArea));
+			}
+			if (sf::Event::Closed == event.type) // window message
+			{
+				m_window.close();
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+			{
+				m_exitGame = true;
+			}
 		}
 	}
 }
@@ -85,7 +88,7 @@ void Game::update(sf::Time t_deltaTime)
 		m_window.close();
 	}
 
-	if (!m_loadLayout)
+	if (!m_loadLayout && m_window.hasFocus())
 	{
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::F1))
 		{

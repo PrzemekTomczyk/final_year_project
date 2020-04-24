@@ -30,7 +30,7 @@ class NodeComparer
 public:
 	bool operator()(const SearchNode* t1, const SearchNode* t2)
 	{
-		return t1->m_minfval > t2->m_minfval;
+		return t1->getFval() > t2->getFval();
 	}
 };
 
@@ -65,7 +65,9 @@ private:
 	int getClickedTileIndex(sf::Vector2i t_mousePos);
 	void setTestLayout();
 	void addLine(sf::Vector2f t_p1, sf::Vector2f t_p2);
+	void addLine(sf::Vector2f t_p1, sf::Vector2f t_p2, sf::Color t_colour);
 	void backTrack();
+	void backTrackFrom(int& t_point);
 	void setupRectCorners(std::vector<int>& t_rectCorners);
 
 	//#######################
@@ -84,8 +86,8 @@ private:
 	int getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigin, int& t_currentLimit, bool& t_goalFound, int& t_rectOrigin);
 	void markBorderers(std::vector<int>& t_rectBorder);
 	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
-	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
-	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen, BoundaryNode& t_boundary);
+	//void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
+	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen, SearchNode* t_cbn, NeighbourIndex& t_boundaryDir);
 	void tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, float& t_octileP1, float& t_octileP2);
 	bool processBoundaries(SearchNode* t_cbn, BoundaryNode& t_wall1, BoundaryNode& t_wall2, BoundaryNode& t_wall3);
 
