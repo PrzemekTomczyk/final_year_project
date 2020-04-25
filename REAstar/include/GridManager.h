@@ -86,6 +86,7 @@ private:
 	int getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigin, int& t_currentLimit, bool& t_goalFound, int& t_rectOrigin);
 	void markBorderers(std::vector<int>& t_rectBorder);
 	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
+	bool tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_dir);
 	//void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
 	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen, SearchNode* t_cbn, NeighbourIndex& t_boundaryDir);
 	void tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, float& t_octileP1, float& t_octileP2);

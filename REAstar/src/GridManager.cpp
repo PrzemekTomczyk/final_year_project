@@ -511,12 +511,6 @@ void GridManager::backTrackFrom(int& t_point)
 			}
 		}
 	}
-	//else
-	//{
-	//	//reaGridRedraw();
-	//	//throw std::invalid_argument("goal's previous ptr not set!");
-	//	std::cout << "goal's previous ptr not set!" << std::endl;
-	//}
 }
 
 void GridManager::setupRectCorners(std::vector<int>& t_rectCorners)
@@ -1407,13 +1401,25 @@ bool GridManager::tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir)
 		m_grid.at(t_point)->m_gval = m_grid.at(diagNeighbour2)->m_gval + Utils::DIAGONAL;
 		updated = true;
 	}
-	if (cardinalNeighbour > -1 && m_grid.at(t_point)->m_gval > m_grid.at(cardinalNeighbour)->m_gval + 1.0f)
+	if (cardinalNeighbour > -1 && 
+		m_grid.at(cardinalNeighbour)->getType() != GridTile::TileType::Obstacle &&
+		m_grid.at(t_point)->m_gval > m_grid.at(cardinalNeighbour)->m_gval + 1.0f)
 	{
 		m_grid.at(t_point)->setPrevious(m_grid.at(cardinalNeighbour));
 		m_grid.at(t_point)->m_gval = m_grid.at(cardinalNeighbour)->m_gval + 1.0f;
 		updated = true;
 	}
+
+	if (updated)
+	{
+		backTrackFrom(t_point);
+	}
 	return updated;
+}
+
+bool GridManager::tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_dir)
+{
+	return false;
 }
 
 //void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen)
@@ -1446,7 +1452,7 @@ void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoin
 			updatedCardinal = true;
 		}
 	}
-	else if (m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen < m_grid.at(t_diagonalPoint)->m_gval + t_diagLen)
+	else if (m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen < m_grid.at(t_diagonalPoint)->m_gval + t_diagLen && m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen < m_grid.at(t_point)->m_gval)
 	{
 		previous = m_grid.at(t_cardinalPoint);
 		m_grid.at(t_point)->m_gval = m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen;
@@ -1473,11 +1479,11 @@ void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoin
 		m_grid.at(t_point)->setPrevious(previous);
 		backTrackFrom(t_point);
 	}
-
 }
 
 void GridManager::tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, float& t_octileP1, float& t_octileP2)
 {
+	GridTile* previous = nullptr;
 	if (t_p1 > -1 && t_point != t_p1 &&
 		(
 		(t_p2 == -1 && m_grid.at(t_p1)->m_gval + t_octileP1 < m_grid.at(t_point)->m_gval) ||
@@ -1485,18 +1491,19 @@ void GridManager::tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int&
 			)
 		)
 	{
-		m_grid.at(t_point)->setPrevious(m_grid.at(t_p1));
+		previous = m_grid.at(t_p1);
 		m_grid.at(t_point)->m_gval = m_grid.at(t_p1)->m_gval + t_octileP1;
 	}
 	else if (t_p2 > -1 && t_point != t_p2 && m_grid.at(t_p2)->m_gval + t_octileP2 < m_grid.at(t_point)->m_gval)
 	{
-		m_grid.at(t_point)->setPrevious(m_grid.at(t_p2));
+		previous = m_grid.at(t_p2);
 		m_grid.at(t_point)->m_gval = m_grid.at(t_p2)->m_gval + t_octileP2;
 	}
-	//else
-	//{
-	//	throw std::invalid_argument("Cannot calc previous");
-	//}
+	if (previous)
+	{
+		m_grid.at(t_point)->setPrevious(previous);
+		backTrackFrom(t_point);
+	}
 }
 
 bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1, BoundaryNode& t_sideWall2, BoundaryNode& t_oppositeWall)
@@ -1816,6 +1823,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 	//if cbn expand direction is WEST
 	else if (t_cbn->m_dir == Utils::LEFT)
 	{
+	//BROKEN HERE
 		//North boudary
 		{
 			BoundaryNode& northBoundary = t_sideWall1;
