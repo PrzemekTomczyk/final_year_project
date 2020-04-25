@@ -478,7 +478,10 @@ void GridManager::backTrack()
 	{
 		//reaGridRedraw();
 		//throw std::invalid_argument("goal's previous ptr not set!");
+#ifdef _DEBUG
 		std::cout << "goal's previous ptr not set!" << std::endl;
+
+#endif // _DEBUG
 	}
 }
 
@@ -565,7 +568,10 @@ void GridManager::init(float t_textOffset)
 
 void GridManager::reaAlgorithm()
 {
+#ifdef _DEBUG
 	std::cout << "Starting REA*..." << std::endl;
+
+#endif // _DEBUG
 	//Initialise
 	for (int i = m_searchNodes.size() - 1; i >= 0; i--)
 	{
@@ -588,7 +594,7 @@ void GridManager::reaAlgorithm()
 		return;
 	}
 #ifndef _DEBUG
-	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+	//std::this_thread::sleep_for(std::chrono::milliseconds(250));
 #elif _DEBUG
 	//reaGridRedraw();
 #endif // _DEBUG
@@ -603,19 +609,25 @@ void GridManager::reaAlgorithm()
 		if (expand(currentBestNode))
 		{
 			//goal has been found!
+#ifdef _DEBUG
 			std::cout << "Expand returned true, backtracking!" << std::endl;
+
+#endif // _DEBUG
 			backTrack();
 			return;
 		}
 #ifndef _DEBUG
-		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		//std::this_thread::sleep_for(std::chrono::milliseconds(250));
 #elif _DEBUG
 		//reaGridRedraw();
 #endif // _DEBUG
 	}
 
 	//path not found
+#ifdef _DEBUG
 	std::cout << "Failed to find a path to the goal!" << std::endl;
+
+#endif // _DEBUG
 }
 
 float GridManager::getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2)
@@ -2382,13 +2394,19 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 
 bool GridManager::expand(SearchNode* t_cbn)
 {
+#ifdef _DEBUG
 	std::cout << "\tExpand..." << std::endl;
+
+#endif // _DEBUG
 
 	bool foundGoal = false;
 
 	if (std::find(t_cbn->m_interval.begin(), t_cbn->m_interval.end(), m_goalIndex) != t_cbn->m_interval.end())
 	{
+#ifdef _DEBUG
 		std::cout << "\t\tApparently Goal found in Expand in CBN" << std::endl;
+
+#endif // _DEBUG
 		return true;
 	}
 
@@ -2396,7 +2414,10 @@ bool GridManager::expand(SearchNode* t_cbn)
 	int origin = t_cbn->m_minValTile->getIndex();
 	if (getRect(boundaryNodes, t_cbn->m_dir, origin, t_cbn->m_interval))
 	{
+#ifdef _DEBUG
 		std::cout << "\t\tGoal found in a rectangle in Expand" << std::endl;
+
+#endif // _DEBUG
 		return true;
 	}
 
@@ -2427,12 +2448,18 @@ bool GridManager::expand(SearchNode* t_cbn)
 
 bool GridManager::insertS()
 {
+#ifdef _DEBUG
 	std::cout << "\tInsertS..." << std::endl;
+
+#endif // _DEBUG
 	std::vector<BoundaryNode> boundaryNodes;
 
 	if (getStartRect(boundaryNodes, Utils::TOP, m_startIndex))
 	{
+#ifdef _DEBUG
 		std::cout << "\t\tGoal found in a rectangle in InsertS" << std::endl;
+
+#endif // _DEBUG
 		return true;
 	}
 
@@ -2497,7 +2524,10 @@ bool GridManager::insertS()
 
 bool GridManager::successor(BoundaryNode& t_parentBoundary)
 {
+#ifdef _DEBUG
 	std::cout << "\t\t\tSuccessor..." << std::endl;
+
+#endif // _DEBUG
 	//ENI = extend neighbour interval of Parent Boundary;
 	//calculate ENI
 	calcENI(t_parentBoundary);
@@ -2507,7 +2537,10 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 
 	if (t_parentBoundary.m_fsi.size() == 0)
 	{
+#ifdef _DEBUG
 		std::cout << "\t\t\t\tSuccessor Quit - FSI = 0..." << std::endl;
+
+#endif // _DEBUG
 		return false;
 	}
 
@@ -2583,7 +2616,10 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 			//goal's fval is not greater than (PP) parent search node's minfval
 			if (t_parentBoundary.m_previous != nullptr && m_grid.at(m_goalIndex)->m_fval <= t_parentBoundary.m_previous->m_fval)
 			{
+#ifdef _DEBUG
 				std::cout << "\t\t\t\Goal found in FSI" << std::endl;
+#endif // _DEBUG
+
 				return true;
 			}
 		}
@@ -2743,8 +2779,11 @@ void GridManager::calcFSI(BoundaryNode& t_parentBoundary)
 
 	if (static_cast<int>(diagonalCheck1) == -1 || static_cast<int>(diagonalCheck2) == -1 || static_cast<int>(cornerCheck1) == -1 || static_cast<int>(cornerCheck2) == -1)
 	{
-		std::cout << "REEEEEEEEEEEEEEEEEEEEEEEEEEEEE" << std::endl;
+#ifdef _DEBUG
 		//invalid index for neighbour check
+		std::cout << "REEEEEEEEEEEEEEEEEEEEEEEEEEEEE" << std::endl;
+
+#endif // _DEBUG
 	}
 
 
