@@ -482,35 +482,35 @@ void GridManager::backTrack()
 	}
 }
 
+/// <summary>
+/// Function used during debugging to see t_point's current path
+/// </summary>
+/// <param name="t_point">index value of a grid tile from which to back track</param>
 void GridManager::backTrackFrom(int& t_point)
 {
-	if (m_grid.at(t_point)->getPrevious() != nullptr) {
-		GridTile* ptr = m_grid.at(t_point);
+	//int test = m_grid.at(t_point)->getPrevious()->getIndex();
+	//if (m_grid.at(t_point)->getPrevious() != nullptr) {
+	//	GridTile* ptr = m_grid.at(t_point);
 
-		int col1, col2, col3;
-		col1 = rand() % 255;
-		col2 = rand() % 255;
-		col3 = rand() % 255;
+	//	int col1, col2, col3;
+	//	col1 = rand() % 255;
+	//	col2 = rand() % 255;
+	//	col3 = rand() % 255;
 
 
-		//add all nodes with previous to the path
-		while (nullptr != ptr->getPrevious())
-		{
-			//if (ptr != m_grid.at(m_goalIndex) && ptr != m_grid.at(m_startIndex))
-			//{
-			//	ptr->setToPath();
-			//}
+	//	//add all nodes with previous to the path
+	//	while (nullptr != ptr->getPrevious())
+	//	{
+	//		addLine(ptr->getPos(), ptr->getPrevious()->getPos(), sf::Color(col1, col2, col3, 255));
 
-			addLine(ptr->getPos(), ptr->getPrevious()->getPos(), sf::Color(col1, col2, col3, 255));
+	//		ptr = ptr->getPrevious();
 
-			ptr = ptr->getPrevious();
-
-			for (int i = 0; i < m_lines.size(); i++)
-			{
-				m_window.draw(&m_lines[0], m_lines.size(), sf::Lines);
-			}
-		}
-	}
+	//	}
+	//	//for (int i = 0; i < m_lines.size(); i++)
+	//	//{
+	//	//	m_window.draw(&m_lines[0], m_lines.size(), sf::Lines);
+	//	//}
+	//}
 }
 
 void GridManager::setupRectCorners(std::vector<int>& t_rectCorners)
@@ -586,11 +586,11 @@ void GridManager::reaAlgorithm()
 		//goal has been found, backtrack
 		backTrack();
 		return;
-}
+	}
 #ifndef _DEBUG
 	std::this_thread::sleep_for(std::chrono::milliseconds(250));
 #elif _DEBUG
-	reaGridRedraw();
+	//reaGridRedraw();
 #endif // _DEBUG
 
 	SearchNode* currentBestNode;
@@ -599,7 +599,7 @@ void GridManager::reaAlgorithm()
 		//current best node CBN
 		currentBestNode = m_openlist.top();
 		m_openlist.pop();
-
+		
 		if (expand(currentBestNode))
 		{
 			//goal has been found!
@@ -610,7 +610,7 @@ void GridManager::reaAlgorithm()
 #ifndef _DEBUG
 		std::this_thread::sleep_for(std::chrono::milliseconds(250));
 #elif _DEBUG
-		reaGridRedraw();
+		//reaGridRedraw();
 #endif // _DEBUG
 	}
 
@@ -630,56 +630,6 @@ float GridManager::getOctileDist(sf::Vector2i t_p1, sf::Vector2i t_p2)
 	int dx = std::abs(t_p1.x - t_p2.x);
 	int dy = std::abs(t_p1.y - t_p2.y);
 	return Utils::DIAGONAL * std::min(dx, dy) + std::abs(dx - dy);
-}
-
-/// <summary>
-/// Calculates direction in which a rectangle should expand in
-/// </summary>
-/// <param name="t_tileIndex"></param>
-/// <returns>Enum that points in the direction of the goal</returns>
-NeighbourIndex GridManager::directionToGoal(int t_tileIndex)
-{
-	NeighbourIndex direction;
-
-	sf::Vector2f vecToGoal = m_grid.at(m_goalIndex)->getPos() - m_grid.at(t_tileIndex)->getPos();
-	if (std::abs(vecToGoal.x) >= std::abs(vecToGoal.y))
-	{
-		if (vecToGoal.x >= 0.f)
-		{
-			direction = NeighbourIndex::RIGHT;
-		}
-		else
-		{
-			direction = NeighbourIndex::LEFT;
-		}
-	}
-	else
-	{
-		if (vecToGoal.y >= 0.f)
-		{
-			direction = NeighbourIndex::BOTTOM;
-		}
-		else
-		{
-			direction = NeighbourIndex::TOP;
-		}
-	}
-
-	return direction;
-}
-
-bool GridManager::rightAngleToGoal(int t_tileIndex)
-{
-	sf::Vector2f pos = m_grid.at(t_tileIndex)->getPos() - m_grid.at(m_goalIndex)->getPos();
-
-	float angle = thor::toDegree(std::atan2(pos.y, pos.x));
-
-	if (angle - (static_cast<int>(angle)) != 0.0 && static_cast<int>(angle) % 90 == 0)
-	{
-		return true;
-	}
-
-	return false;
 }
 
 /// <summary>
@@ -860,10 +810,6 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 		throw std::invalid_argument("one of the corners is an invalid index!");
 	}
 
-	//std::cout << "Limit in direction: " << limitInDirection << std::endl;
-	//std::cout << "Side Limit 1: " << sideLimit1 << std::endl;
-	//std::cout << "Side Limit 2: " << sideLimit2 << std::endl;
-
 	if (!goalFound)
 	{
 		if (t_expandOpposite)
@@ -888,10 +834,6 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 				throw std::invalid_argument("received bad direction value");
 				break;
 			}
-			//if (startPointIndex < 0 || m_grid.at(startPointIndex)->getType() == GridTile::TileType::Obstacle || m_grid.at(startPointIndex)->getVisited())
-			//{
-			//	startPointIndex = t_origin;
-			//}
 			getRectInOpposite(t_rectBoundary, oppositeDirection, startPointIndex, sideLimit1, sideLimit2, goalFound);
 		}
 		else
@@ -921,10 +863,6 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 	{
 		m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
 	}
-	//if (goalFound)
-	//{
-	//	std::cout << "Goal found!" << std::endl;
-	//}
 	if (!goalFound)
 	{
 		markBorderers(t_rectBoundary);
@@ -1019,42 +957,6 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 			}
 		}
 	}
-	//else
-	//{
-	//	//we cant expand in the main direction, just expand sideways
-	//	int tempLimit1 = -1, tempLimit2 = -1;
-	//	switch (t_direction)
-	//	{
-	//	case NeighbourIndex::LEFT:
-	//	case NeighbourIndex::RIGHT:
-	//		limitInDirection = m_grid.at(t_origin)->getColRow().x;
-	//		
-	//		tempLimit1 = getSideBoundary(NeighbourIndex::TOP, t_origin, sideLimit1, t_goalFound);
-	//		tempLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, t_origin, sideLimit2, t_goalFound);
-	//
-	//		if (tempLimit1 > sideLimit1)
-	//		{
-	//			breakout = true;
-	//		}
-	//		if (tempLimit2 < sideLimit2)
-	//		{
-	//			breakout = true;
-	//		}
-	//
-	//		sideLimit1 = getSideBoundary(NeighbourIndex::TOP, t_origin, sideLimit1, t_goalFound);
-	//		sideLimit2 = getSideBoundary(NeighbourIndex::BOTTOM, t_origin, sideLimit2, t_goalFound);
-	//		break;
-	//	case NeighbourIndex::TOP:
-	//	case NeighbourIndex::BOTTOM:
-	//		limitInDirection = m_grid.at(t_origin)->getColRow().y;
-	//		sideLimit1 = getSideBoundary(NeighbourIndex::LEFT, t_origin, sideLimit1, t_goalFound);
-	//		sideLimit2 = getSideBoundary(NeighbourIndex::RIGHT, t_origin, sideLimit2, t_goalFound);
-	//		break;
-	//	default:
-	//		throw std::invalid_argument("received bad direction value");
-	//		break;
-	//	}
-	//}
 
 	int corner1, corner2, tempSideLimit1, tempSideLimit2/*, tempDirectionLimit*/;
 	if (oppositeLimit1 >= 0 && oppositeLimit2 >= 0)
@@ -1095,10 +997,6 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 	{
 		m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_origin));
 	}
-
-	//std::cout << "Limit in opposite direction: " << limitInDirection << std::endl;
-	//std::cout << "Side Limit 1: " << tempSideLimit1 << std::endl;
-	//std::cout << "Side Limit 2: " << tempSideLimit2 << std::endl;
 }
 
 int GridManager::getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigin, int& t_currentLimit, bool& t_goalFound, int& t_rectOrigin)
@@ -1163,16 +1061,6 @@ int GridManager::getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigi
 			{
 				//stop looping
 				t_goalFound = true;
-
-				//if (!cardinalDirectionsAvailable(t_rectOrigin))
-				//{
-				//	m_grid.at(t_expandOrigin)->setPrevious(m_grid.at(t_rectOrigin));
-				//	m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_expandOrigin));
-				//}
-				//else
-				//{
-				//	m_grid.at(m_goalIndex)->setPrevious(m_grid.at(t_rectOrigin));
-				//}
 				expand = false;
 			}
 		}
@@ -1294,41 +1182,6 @@ void GridManager::markBorderers(std::vector<int>& t_rectBorder)
 	}
 }
 
-//void GridManager::markFSI(std::vector<int>& t_fsi, NeighbourIndex& t_dir)
-//{
-//	int fsiIndex = 0;
-//	int index = t_fsi[0];
-//	int offset = 1;
-//	bool mark = true;
-//	switch (t_dir)
-//	{
-//	case NeighbourIndex::LEFT:
-//	case NeighbourIndex::RIGHT:
-//		offset = TILES_PER_ROW;
-//		break;
-//	case NeighbourIndex::TOP:
-//	case NeighbourIndex::BOTTOM:
-//		offset = 1;
-//		break;
-//	default:
-//		break;
-//	}
-//
-//	while (index <= t_fsi[t_fsi.size() - 1]/* + offset*/)
-//	{
-//		if (mark)
-//		{
-//			m_grid.at(index)->setMarked(true);
-//		}
-//		if (index == t_fsi[fsiIndex + 1] + offset)
-//		{
-//			mark = false;
-//			fsiIndex += offset;
-//		}
-//		index += offset;
-//	}
-//}
-
 /// <summary>
 /// Tries to update point if better values are being passed in
 /// </summary>
@@ -1338,105 +1191,482 @@ void GridManager::markBorderers(std::vector<int>& t_rectBorder)
 bool GridManager::tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir)
 {
 	bool updated = false;
-	int diagNeighbour1 = -1;
-	NeighbourIndex diagDir1 = NeighbourIndex::NONE;
-	int diagNeighbour2 = -1;
-	NeighbourIndex diagDir2 = NeighbourIndex::NONE;
-	int cardinalNeighbour = -1;
-	NeighbourIndex cardinalDir = NeighbourIndex::NONE;
-	NeighbourIndex cardinalCheck1 = NeighbourIndex::NONE;
-	NeighbourIndex cardinalCheck2 = NeighbourIndex::NONE;
+	GridTile* previous = nullptr;
+	NeighbourIndex nextFsiDir;
+	NeighbourIndex nextFsiDiagDir;
+
+	NeighbourIndex prevFsiDir;
+	NeighbourIndex prevFsiDiagDir;
+
+	NeighbourIndex cardinalParentDir;
 
 	switch (t_dir)
 	{
 	case NeighbourIndex::LEFT:
-		diagDir1 = NeighbourIndex::TOP_RIGHT;
-		diagDir2 = NeighbourIndex::BOTTOM_RIGHT;
-		cardinalDir = NeighbourIndex::RIGHT;
-		cardinalCheck1 = NeighbourIndex::TOP;
-		cardinalCheck2 = NeighbourIndex::BOTTOM;
+		nextFsiDir = NeighbourIndex::BOTTOM;
+		nextFsiDiagDir = NeighbourIndex::BOTTOM_RIGHT;
+
+		prevFsiDir = NeighbourIndex::TOP;
+		prevFsiDiagDir = NeighbourIndex::TOP_RIGHT;
+
+		cardinalParentDir = NeighbourIndex::RIGHT;
 		break;
 	case NeighbourIndex::RIGHT:
-		diagDir1 = NeighbourIndex::TOP_LEFT;
-		diagDir2 = NeighbourIndex::BOTTOM_LEFT;
-		cardinalDir = NeighbourIndex::LEFT;
-		cardinalCheck1 = NeighbourIndex::TOP;
-		cardinalCheck2 = NeighbourIndex::BOTTOM;
+		nextFsiDir = NeighbourIndex::BOTTOM;
+		nextFsiDiagDir = NeighbourIndex::BOTTOM_LEFT;
+
+		prevFsiDir = NeighbourIndex::TOP;
+		prevFsiDiagDir = NeighbourIndex::TOP_LEFT;
+
+		cardinalParentDir = NeighbourIndex::LEFT;
 		break;
 	case NeighbourIndex::TOP:
-		diagDir1 = NeighbourIndex::BOTTOM_LEFT;
-		diagDir2 = NeighbourIndex::BOTTOM_RIGHT;
-		cardinalDir = NeighbourIndex::BOTTOM;
-		cardinalCheck1 = NeighbourIndex::LEFT;
-		cardinalCheck2 = NeighbourIndex::RIGHT;
+		nextFsiDir = NeighbourIndex::RIGHT;
+		nextFsiDiagDir = NeighbourIndex::BOTTOM_RIGHT;
+
+		prevFsiDir = NeighbourIndex::LEFT;
+		prevFsiDiagDir = NeighbourIndex::BOTTOM_LEFT;
+
+		cardinalParentDir = NeighbourIndex::BOTTOM;
 		break;
 	case NeighbourIndex::BOTTOM:
-		diagDir1 = NeighbourIndex::TOP_LEFT;
-		diagDir2 = NeighbourIndex::TOP_RIGHT;
-		cardinalDir = NeighbourIndex::TOP;
-		cardinalCheck1 = NeighbourIndex::LEFT;
-		cardinalCheck2 = NeighbourIndex::RIGHT;
+		nextFsiDir = NeighbourIndex::RIGHT;
+		nextFsiDiagDir = NeighbourIndex::TOP_RIGHT;
+
+		prevFsiDir = NeighbourIndex::LEFT;
+		prevFsiDiagDir = NeighbourIndex::TOP_LEFT;
+
+		cardinalParentDir = NeighbourIndex::TOP;
 		break;
 	default:
 		break;
 	}
 
-	diagNeighbour1 = getNeighbourIndex(diagDir1, t_point);
-	diagNeighbour2 = getNeighbourIndex(diagDir2, t_point);
-	cardinalNeighbour = getNeighbourIndex(cardinalDir, t_point);
+	//vector to store all gvals
+	std::vector<float> gvals;
 
-	if (diagNeighbour1 > -1 && //if valid index
-		m_grid.at(getNeighbourIndex(cardinalCheck1, t_point))->getType() != GridTile::TileType::Obstacle &&
-		m_grid.at(t_point)->m_gval > m_grid.at(diagNeighbour1)->m_gval + Utils::DIAGONAL)
+	//indexes for different neighbours
+	int nextFsiIndex = getNeighbourIndex(nextFsiDir, t_point);
+	int nextFsiDiagIndex = getNeighbourIndex(nextFsiDiagDir, t_point);
+
+	int prevFsiIndex = getNeighbourIndex(prevFsiDir, t_point);
+	int prevFsiDiagIndex = getNeighbourIndex(prevFsiDiagDir, t_point);
+
+	int cardinalIndex = getNeighbourIndex(cardinalParentDir, t_point);
+
+
+	//int nextDiagCost = m_grid.at(nextFsiDiagIndex)->m_gval + Utils::DIAGONAL;
+	//int prevDiagCost = m_grid.at(prevFsiDiagIndex)->m_gval + Utils::DIAGONAL;
+	//int cardCost = m_grid.at(cardinalIndex)->m_gval + 1.0f;
+
+	if (nextFsiIndex != -1 && nextFsiDiagIndex != -1 &&
+		m_grid.at(nextFsiIndex)->getType() != GridTile::TileType::Obstacle &&
+		m_grid.at(nextFsiDiagIndex)->getType() != GridTile::TileType::Obstacle)
 	{
-		m_grid.at(t_point)->setPrevious(m_grid.at(diagNeighbour1));
-		m_grid.at(t_point)->m_gval = m_grid.at(diagNeighbour1)->m_gval + Utils::DIAGONAL;
-		updated = true;
+		gvals.push_back(m_grid.at(nextFsiDiagIndex)->m_gval + Utils::DIAGONAL);
 	}
-	if (diagNeighbour2 > -1 &&
-		m_grid.at(getNeighbourIndex(cardinalCheck2, t_point))->getType() != GridTile::TileType::Obstacle &&
-		m_grid.at(t_point)->m_gval > m_grid.at(diagNeighbour2)->m_gval + Utils::DIAGONAL)
+	else
 	{
-		m_grid.at(t_point)->setPrevious(m_grid.at(diagNeighbour2));
-		m_grid.at(t_point)->m_gval = m_grid.at(diagNeighbour2)->m_gval + Utils::DIAGONAL;
-		updated = true;
+		gvals.push_back(std::numeric_limits<int>::max());
 	}
-	if (cardinalNeighbour > -1 && 
-		m_grid.at(cardinalNeighbour)->getType() != GridTile::TileType::Obstacle &&
-		m_grid.at(t_point)->m_gval > m_grid.at(cardinalNeighbour)->m_gval + 1.0f)
+	if (prevFsiIndex != -1 && prevFsiDiagIndex != -1 &&
+		m_grid.at(prevFsiIndex)->getType() != GridTile::TileType::Obstacle &&
+		m_grid.at(prevFsiDiagIndex)->getType() != GridTile::TileType::Obstacle)
 	{
-		m_grid.at(t_point)->setPrevious(m_grid.at(cardinalNeighbour));
-		m_grid.at(t_point)->m_gval = m_grid.at(cardinalNeighbour)->m_gval + 1.0f;
+		gvals.push_back(m_grid.at(prevFsiDiagIndex)->m_gval + Utils::DIAGONAL);
+	}
+	else
+	{
+		gvals.push_back(std::numeric_limits<int>::max());
+	}
+	gvals.push_back(m_grid.at(cardinalIndex)->m_gval + 1.0f);
+
+
+	//int lowestCost = std::min({ nextDiagCost, prevDiagCost, cardCost });
+	auto lowestIter = std::min_element(gvals.begin(), gvals.end());
+
+	if (*lowestIter < m_grid.at(t_point)->m_gval)
+	{
 		updated = true;
+		m_grid.at(t_point)->m_gval = *lowestIter;
+		switch (lowestIter - gvals.begin())
+		{
+		case 0:
+			previous = m_grid.at(nextFsiDiagIndex);
+			break;
+		case 1:
+			previous = m_grid.at(prevFsiDiagIndex);
+			break;
+		case 2:
+			previous = m_grid.at(cardinalIndex);
+			break;
+		default:
+			break;
+		}
 	}
 
-	if (updated)
+	////check if both indexes are valid and then if so, are both of them not obstacles 
+	//if (nextFsiIndex != -1 && nextFsiDiagIndex != -1 &&
+	//	m_grid.at(nextFsiIndex)->getType() != GridTile::TileType::Obstacle &&
+	//	m_grid.at(nextFsiDiagIndex)->getType() != GridTile::TileType::Obstacle)
+	//{
+	//	if (m_grid.at(t_point)->m_gval > m_grid.at(nextFsiDiagIndex)->m_gval + Utils::DIAGONAL)
+	//	{
+	//		previous = m_grid.at(nextFsiDiagIndex);
+	//		m_grid.at(t_point)->m_gval = m_grid.at(nextFsiDiagIndex)->m_gval + Utils::DIAGONAL;
+	//		updated = true;
+	//	}
+	//}
+	////check if both indexes are valid and then if so, are both of them not obstacles 
+	//if (prevFsiIndex != -1 && prevFsiDiagIndex != -1 &&
+	//	m_grid.at(prevFsiIndex)->getType() != GridTile::TileType::Obstacle &&
+	//	m_grid.at(prevFsiDiagIndex)->getType() != GridTile::TileType::Obstacle)
+	//{
+	//	if (m_grid.at(t_point)->m_gval > m_grid.at(prevFsiDiagIndex)->m_gval + Utils::DIAGONAL)
+	//	{
+	//		previous = m_grid.at(prevFsiDiagIndex);
+	//		m_grid.at(t_point)->m_gval = m_grid.at(prevFsiDiagIndex)->m_gval + Utils::DIAGONAL;
+	//		updated = true;
+	//	}
+	//}
+	////this tile has to be valid here
+	//if (m_grid.at(t_point)->m_gval > m_grid.at(cardinalIndex)->m_gval + 1.0f) //hard coded distance between cardinal neighbour tiles
+	//{
+	//	previous = m_grid.at(cardinalIndex);
+	//	m_grid.at(t_point)->m_gval = m_grid.at(cardinalIndex)->m_gval + 1.0f;
+	//	updated = true;
+	//}
+
+	//int diagNeighbour1 = -1;
+	//NeighbourIndex diagDir1 = NeighbourIndex::NONE;
+	//int diagNeighbour2 = -1;
+	//NeighbourIndex diagDir2 = NeighbourIndex::NONE;
+	//int cardinalNeighbour = -1;
+	//NeighbourIndex cardinalDir = NeighbourIndex::NONE;
+	//NeighbourIndex cardinalCheck1 = NeighbourIndex::NONE;
+	//NeighbourIndex cardinalCheck2 = NeighbourIndex::NONE;
+	//
+	//switch (t_dir)
+	//{
+	//case NeighbourIndex::LEFT:
+	//	diagDir1 = NeighbourIndex::TOP_RIGHT;
+	//	diagDir2 = NeighbourIndex::BOTTOM_RIGHT;
+	//	cardinalDir = NeighbourIndex::RIGHT;
+	//	cardinalCheck1 = NeighbourIndex::TOP;
+	//	cardinalCheck2 = NeighbourIndex::BOTTOM;
+	//	break;
+	//case NeighbourIndex::RIGHT:
+	//	diagDir1 = NeighbourIndex::TOP_LEFT;
+	//	diagDir2 = NeighbourIndex::BOTTOM_LEFT;
+	//	cardinalDir = NeighbourIndex::LEFT;
+	//	cardinalCheck1 = NeighbourIndex::TOP;
+	//	cardinalCheck2 = NeighbourIndex::BOTTOM;
+	//	break;
+	//case NeighbourIndex::TOP:
+	//	diagDir1 = NeighbourIndex::BOTTOM_LEFT;
+	//	diagDir2 = NeighbourIndex::BOTTOM_RIGHT;
+	//	cardinalDir = NeighbourIndex::BOTTOM;
+	//	cardinalCheck1 = NeighbourIndex::LEFT;
+	//	cardinalCheck2 = NeighbourIndex::RIGHT;
+	//	break;
+	//case NeighbourIndex::BOTTOM:
+	//	diagDir1 = NeighbourIndex::TOP_LEFT;
+	//	diagDir2 = NeighbourIndex::TOP_RIGHT;
+	//	cardinalDir = NeighbourIndex::TOP;
+	//	cardinalCheck1 = NeighbourIndex::LEFT;
+	//	cardinalCheck2 = NeighbourIndex::RIGHT;
+	//	break;
+	//default:
+	//	break;
+	//}
+	//
+	//diagNeighbour1 = getNeighbourIndex(diagDir1, t_point);
+	//diagNeighbour2 = getNeighbourIndex(diagDir2, t_point);
+	//cardinalNeighbour = getNeighbourIndex(cardinalDir, t_point);
+	//
+	//if (diagNeighbour1 > -1 && //if valid index
+	//	m_grid.at(getNeighbourIndex(cardinalCheck1, t_point))->getType() != GridTile::TileType::Obstacle &&
+	//	m_grid.at(t_point)->m_gval > m_grid.at(diagNeighbour1)->m_gval + Utils::DIAGONAL)
+	//{
+	//	m_grid.at(t_point)->setPrevious(m_grid.at(diagNeighbour1));
+	//	m_grid.at(t_point)->m_gval = m_grid.at(diagNeighbour1)->m_gval + Utils::DIAGONAL;
+	//	updated = true;
+	//}
+	//if (diagNeighbour2 > -1 &&
+	//	m_grid.at(getNeighbourIndex(cardinalCheck2, t_point))->getType() != GridTile::TileType::Obstacle &&
+	//	m_grid.at(t_point)->m_gval > m_grid.at(diagNeighbour2)->m_gval + Utils::DIAGONAL)
+	//{
+	//	m_grid.at(t_point)->setPrevious(m_grid.at(diagNeighbour2));
+	//	m_grid.at(t_point)->m_gval = m_grid.at(diagNeighbour2)->m_gval + Utils::DIAGONAL;
+	//	updated = true;
+	//}
+	//if (cardinalNeighbour > -1 && 
+	//	m_grid.at(cardinalNeighbour)->getType() != GridTile::TileType::Obstacle &&
+	//	m_grid.at(t_point)->m_gval > m_grid.at(cardinalNeighbour)->m_gval + 1.0f)
+	//{
+	//	m_grid.at(t_point)->setPrevious(m_grid.at(cardinalNeighbour));
+	//	m_grid.at(t_point)->m_gval = m_grid.at(cardinalNeighbour)->m_gval + 1.0f;
+	//	updated = true;
+	//}
+
+	if (updated && previous)
 	{
+		m_grid.at(t_point)->setPrevious(previous);
 		backTrackFrom(t_point);
 	}
 	return updated;
 }
 
-bool GridManager::tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_dir)
+bool GridManager::fsiSpecialCasePoint(int& t_point, BoundaryNode& t_boundary)
 {
+	NeighbourIndex directionCheck;
+	switch (t_boundary.m_dir)
+	{
+	case NeighbourIndex::LEFT:
+		directionCheck = NeighbourIndex::RIGHT;
+		break;
+	case NeighbourIndex::RIGHT:
+		directionCheck = NeighbourIndex::LEFT;
+		break;
+	case NeighbourIndex::TOP:
+		directionCheck = NeighbourIndex::BOTTOM;
+		break;
+	case NeighbourIndex::BOTTOM:
+		directionCheck = NeighbourIndex::TOP;
+		break;
+	default:
+		break;
+	}
+
+	//boundary corners need to check for diagonals.
+	if (t_boundary.m_boundary[0] == getNeighbourIndex(directionCheck, t_point) ||
+		t_boundary.m_boundary.at(t_boundary.m_boundary.size() - 1) == getNeighbourIndex(directionCheck, t_point))//check if this is a special case
+	{
+		return true;
+	}
+
 	return false;
 }
 
-//void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen)
-//{
-//	//point below
-//	if (t_point != t_cardinalPoint && m_grid.at(t_point)->m_gval > m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen)
-//	{
-//		m_grid.at(t_point)->setPrevious(m_grid.at(t_cardinalPoint));
-//		m_grid.at(t_point)->m_gval = m_grid.at(t_cardinalPoint)->m_gval + t_cardinalLen;
-//	}
-//	//diagonal point
-//	if (t_point != t_diagonalPoint && m_grid.at(t_point)->m_gval > m_grid.at(t_diagonalPoint)->m_gval + t_diagLen)
-//	{
-//		m_grid.at(t_point)->setPrevious(m_grid.at(t_diagonalPoint));
-//		m_grid.at(t_point)->m_gval = m_grid.at(t_diagonalPoint)->m_gval + t_diagLen;
-//	}
-//}
+bool GridManager::tryToUpdateSpecialCaseFsiPoint(int& t_point, NeighbourIndex& t_dir, bool t_startPoint)
+{
+	bool updated = false;
+	GridTile* previous = nullptr;
+	NeighbourIndex fsiNeighbourDir;
+	NeighbourIndex fsiNeighbourDiagDir;
+
+	NeighbourIndex cardinalParentDir;
+
+	switch (t_dir)
+	{
+	case NeighbourIndex::LEFT:
+	{
+		cardinalParentDir = NeighbourIndex::RIGHT;
+		if (t_startPoint)
+		{
+			fsiNeighbourDir = NeighbourIndex::BOTTOM;
+			fsiNeighbourDiagDir = NeighbourIndex::BOTTOM_RIGHT;
+		}
+		else
+		{
+			fsiNeighbourDir = NeighbourIndex::TOP;
+			fsiNeighbourDiagDir = NeighbourIndex::TOP_RIGHT;
+		}
+		break;
+	}
+	case NeighbourIndex::RIGHT:
+	{
+		cardinalParentDir = NeighbourIndex::LEFT;
+		if (t_startPoint)
+		{
+			fsiNeighbourDir = NeighbourIndex::BOTTOM;
+			fsiNeighbourDiagDir = NeighbourIndex::BOTTOM_LEFT;
+		}
+		else
+		{
+			fsiNeighbourDir = NeighbourIndex::TOP;
+			fsiNeighbourDiagDir = NeighbourIndex::TOP_LEFT;
+		}
+		break;
+	}
+	case NeighbourIndex::TOP:
+	{
+		cardinalParentDir = NeighbourIndex::BOTTOM;
+		if (t_startPoint)
+		{
+			fsiNeighbourDir = NeighbourIndex::RIGHT;
+			fsiNeighbourDiagDir = NeighbourIndex::BOTTOM_RIGHT;
+		}
+		else
+		{
+			fsiNeighbourDir = NeighbourIndex::LEFT;
+			fsiNeighbourDiagDir = NeighbourIndex::BOTTOM_LEFT;
+		}
+		break;
+	}
+	case NeighbourIndex::BOTTOM:
+	{
+		cardinalParentDir = NeighbourIndex::TOP;
+		if (t_startPoint)
+		{
+			fsiNeighbourDir = NeighbourIndex::RIGHT;
+			fsiNeighbourDiagDir = NeighbourIndex::TOP_RIGHT;
+		}
+		else
+		{
+			fsiNeighbourDir = NeighbourIndex::LEFT;
+			fsiNeighbourDiagDir = NeighbourIndex::TOP_LEFT;
+		}
+		break;
+	}
+	default:
+		break;
+	}
+
+	int fsiNeighbourIndex = getNeighbourIndex(fsiNeighbourDir, t_point);
+	int fsiNeighbourDiagIndex = getNeighbourIndex(fsiNeighbourDiagDir, t_point);
+
+	int cardinalIndex = getNeighbourIndex(cardinalParentDir, t_point);
+
+	//check if both indexes are valid and then if so, are both of them not obstacles 
+	if (fsiNeighbourIndex != -1 && fsiNeighbourDiagIndex != -1 &&
+		m_grid.at(fsiNeighbourIndex)->getType() != GridTile::TileType::Obstacle &&
+		m_grid.at(fsiNeighbourDiagIndex)->getType() != GridTile::TileType::Obstacle)
+	{
+		if (m_grid.at(cardinalIndex)->m_gval + 1.0f > m_grid.at(fsiNeighbourDiagIndex)->m_gval + Utils::DIAGONAL &&
+			m_grid.at(t_point)->m_gval > m_grid.at(fsiNeighbourDiagIndex)->m_gval + Utils::DIAGONAL)
+		{
+			updated = true;
+			previous = m_grid.at(fsiNeighbourDiagIndex);
+			m_grid.at(t_point)->m_gval = m_grid.at(fsiNeighbourDiagIndex)->m_gval + Utils::DIAGONAL;
+		}
+	}
+	//this tile has to be valid here
+	if (m_grid.at(t_point)->m_gval > m_grid.at(cardinalIndex)->m_gval + 1.0f) //hard coded distance between cardinal neighbour tiles
+	{
+		updated = true;
+		previous = m_grid.at(cardinalIndex);
+		m_grid.at(t_point)->m_gval = m_grid.at(cardinalIndex)->m_gval + 1.0f;
+	}
+
+	if (updated && previous)
+	{
+		m_grid.at(t_point)->setPrevious(previous);
+		backTrackFrom(t_point);
+	}
+	return updated;
+}
+
+bool GridManager::tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_dir, bool t_startPoint)
+{
+	bool updated = false;
+	NeighbourIndex fsiNeighbourCheck;
+	NeighbourIndex diagonalParentCheck;
+	NeighbourIndex cardinalParentCheck;
+	GridTile* previous = nullptr;
+
+	switch (t_dir)
+	{
+	case NeighbourIndex::LEFT:
+	{
+		cardinalParentCheck = NeighbourIndex::RIGHT;
+		if (t_startPoint)
+		{
+			fsiNeighbourCheck = NeighbourIndex::BOTTOM;
+			diagonalParentCheck = NeighbourIndex::BOTTOM_RIGHT;
+		}
+		else
+		{
+			fsiNeighbourCheck = NeighbourIndex::TOP;
+			diagonalParentCheck = NeighbourIndex::TOP_RIGHT;
+		}
+		break;
+	}
+	case NeighbourIndex::RIGHT:
+	{
+		cardinalParentCheck = NeighbourIndex::LEFT;
+		if (t_startPoint)
+		{
+			fsiNeighbourCheck = NeighbourIndex::BOTTOM;
+			diagonalParentCheck = NeighbourIndex::BOTTOM_LEFT;
+		}
+		else
+		{
+			fsiNeighbourCheck = NeighbourIndex::TOP;
+			diagonalParentCheck = NeighbourIndex::TOP_LEFT;
+		}
+		break;
+	}
+	case NeighbourIndex::TOP:
+	{
+		cardinalParentCheck = NeighbourIndex::BOTTOM;
+		if (t_startPoint)
+		{
+			fsiNeighbourCheck = NeighbourIndex::RIGHT;
+			diagonalParentCheck = NeighbourIndex::BOTTOM_RIGHT;
+		}
+		else
+		{
+			fsiNeighbourCheck = NeighbourIndex::LEFT;
+			diagonalParentCheck = NeighbourIndex::BOTTOM_LEFT;
+		}
+		break;
+	}
+	case NeighbourIndex::BOTTOM:
+	{
+		cardinalParentCheck = NeighbourIndex::TOP;
+		if (t_startPoint)
+		{
+			fsiNeighbourCheck = NeighbourIndex::RIGHT;
+			diagonalParentCheck = NeighbourIndex::TOP_RIGHT;
+		}
+		else
+		{
+			fsiNeighbourCheck = NeighbourIndex::LEFT;
+			diagonalParentCheck = NeighbourIndex::TOP_LEFT;
+		}
+		break;
+	}
+	default:
+		break;
+	}
+
+	int fsiNeighbour = getNeighbourIndex(fsiNeighbourCheck, t_point);
+	int diagonalParent = getNeighbourIndex(diagonalParentCheck, t_point);
+	int cardinalParent = getNeighbourIndex(cardinalParentCheck, t_point);
+
+	if (m_grid.at(fsiNeighbour)->getType() != GridTile::TileType::Obstacle &&
+		m_grid.at(diagonalParent)->getType() != GridTile::TileType::Obstacle &&
+		m_grid.at(cardinalParent)->getType() != GridTile::TileType::Obstacle)
+	{
+		if (/*m_grid.at(fsiNeighbour)->m_gval + 1.0f > m_grid.at(diagonalParent)->m_gval + Utils::DIAGONAL &&
+			*/m_grid.at(t_point)->m_gval > m_grid.at(diagonalParent)->m_gval + Utils::DIAGONAL)
+		{
+			updated = true;
+			previous = m_grid.at(diagonalParent);
+			m_grid.at(t_point)->m_gval = m_grid.at(diagonalParent)->m_gval + Utils::DIAGONAL;
+		}
+		//else if (m_grid.at(t_point)->m_gval > m_grid.at(fsiNeighbour)->m_gval + 1.0f) //hardcoded cardinal length between tiles
+		//{
+		//	updated = true;
+		//	previous = m_grid.at(fsiNeighbour);
+		//	m_grid.at(t_point)->m_gval = m_grid.at(fsiNeighbour)->m_gval + 1.0f;
+		//}
+	}
+	else if (m_grid.at(t_point)->m_gval > m_grid.at(fsiNeighbour)->m_gval + 1.0f) //hardcoded cardinal length between tiles
+	{
+		updated = true;
+		previous = m_grid.at(fsiNeighbour);
+		m_grid.at(t_point)->m_gval = m_grid.at(fsiNeighbour)->m_gval + 1.0f;
+	}
+
+	if (updated && previous)
+	{
+		m_grid.at(t_point)->setPrevious(previous);
+		backTrackFrom(t_point);
+	}
+	return updated;
+}
 
 void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen, SearchNode* t_cbn, NeighbourIndex& t_boundaryDir)
 {
@@ -1483,18 +1713,22 @@ void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoin
 
 void GridManager::tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, float& t_octileP1, float& t_octileP2)
 {
+	//this here is an utter mess, fix to compare only to t_point.gval. Similar to the new way............
 	GridTile* previous = nullptr;
+	//if (t_p1 > -1 && t_point != t_p1 &&
+	//	(
+	//	(t_p2 == -1 && m_grid.at(t_p1)->m_gval + t_octileP1 < m_grid.at(t_point)->m_gval) ||
+	//		(m_grid.at(t_p1)->m_gval + t_octileP1 < m_grid.at(t_p2)->m_gval + t_octileP2)
+	//		)
+	//	)
+
 	if (t_p1 > -1 && t_point != t_p1 &&
-		(
-		(t_p2 == -1 && m_grid.at(t_p1)->m_gval + t_octileP1 < m_grid.at(t_point)->m_gval) ||
-			(m_grid.at(t_p1)->m_gval + t_octileP1 < m_grid.at(t_p2)->m_gval + t_octileP2)
-			)
-		)
+		m_grid.at(t_point)->m_gval > m_grid.at(t_p1)->m_gval + t_octileP1)
 	{
 		previous = m_grid.at(t_p1);
 		m_grid.at(t_point)->m_gval = m_grid.at(t_p1)->m_gval + t_octileP1;
 	}
-	else if (t_p2 > -1 && t_point != t_p2 && m_grid.at(t_p2)->m_gval + t_octileP2 < m_grid.at(t_point)->m_gval)
+	if (t_p2 > -1 && t_point != t_p2 && m_grid.at(t_point)->m_gval > m_grid.at(t_p2)->m_gval + t_octileP2)
 	{
 		previous = m_grid.at(t_p2);
 		m_grid.at(t_point)->m_gval = m_grid.at(t_p2)->m_gval + t_octileP2;
@@ -1502,7 +1736,6 @@ void GridManager::tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int&
 	if (previous)
 	{
 		m_grid.at(t_point)->setPrevious(previous);
-		backTrackFrom(t_point);
 	}
 }
 
@@ -1656,6 +1889,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 						p2 = -1;
 					}
 				}
+				backTrackFrom(p);
 			}
 			if (successor(northBoundary))
 			{
@@ -1813,6 +2047,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 						p2 = -1;
 					}
 				}
+				backTrackFrom(p);
 			}
 			if (successor(southBoundary))
 			{
@@ -1823,8 +2058,8 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 	//if cbn expand direction is WEST
 	else if (t_cbn->m_dir == Utils::LEFT)
 	{
-	//BROKEN HERE
-		//North boudary
+		//BROKEN HERE
+			//North boudary
 		{
 			BoundaryNode& northBoundary = t_sideWall1;
 
@@ -1973,6 +2208,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 						p2 = -1;
 					}
 				}
+				backTrackFrom(p);
 			}
 			if (successor(westBoundary))
 			{
@@ -2132,6 +2368,7 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 						p2 = -1;
 					}
 				}
+				backTrackFrom(p);
 			}
 			if (successor(eastBoundary))
 			{
@@ -2268,20 +2505,6 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 	//calculate FSI
 	calcFSI(t_parentBoundary);
 
-	//for all free subintervals FSI of ENI do
-		//for a point p in FSI do
-			//Try to update p with PB
-			//p.mode = hpoint
-			//p.hval = octile(p, G)
-			//p.fval = p.hval + p.gval
-		//if G in FSI and G.fval <= PP.minval then
-			//return path found
-	//if p in FSI updated by PB then
-		//PN.I = FSI
-		//PN.dir = direction of PB
-		//PN.minfval = min.gval;??????
-		//Openlist.Insert(PN)
-	//return null
 	if (t_parentBoundary.m_fsi.size() == 0)
 	{
 		std::cout << "\t\t\t\tSuccessor Quit - FSI = 0..." << std::endl;
@@ -2296,37 +2519,72 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 	{
 		fsi.m_previous = t_parentBoundary.m_previous;
 		fsi.m_dir = t_parentBoundary.m_dir; //just incase
+		bool firstDiag = false;
+		bool firstDiagStartPoint = false;
+		bool lastDiag = false;
+		bool secondDiagStartPoint = false;
 
 		for (auto& point : fsi.m_interval)
 		{
-			if (tryToUpdateFsiPoint(point, t_parentBoundary.m_dir))
+
+			if (point == t_parentBoundary.m_eni[0] || point == t_parentBoundary.m_eni[t_parentBoundary.m_eni.size() - 1])
 			{
-				fsiUpdated = true;
+				if (fsiSpecialCasePoint(point, t_parentBoundary))
+				{
+					if (tryToUpdateSpecialCaseFsiPoint(point, fsi.m_dir, (point == fsi.m_interval[0])))
+					{
+						fsiUpdated = true;
+						setupFsiPoint(point, fsi);
+					}
+				}
+				else if (point == t_parentBoundary.m_eni[0])
+				{
+					firstDiag = true;
+					firstDiagStartPoint = point == fsi.m_interval[0];
+				}
+				else if (point == t_parentBoundary.m_eni[t_parentBoundary.m_eni.size() - 1])
+				{
+					lastDiag = true;
+				}
+			}
+			else
+			{
+				if (tryToUpdateFsiPoint(point, t_parentBoundary.m_dir))
+				{
+					fsiUpdated = true;
+					setupFsiPoint(point, fsi);
+				}
 			}
 
-			m_grid.at(point)->m_mode = GridTile::ReaMode::Hpoint;
-			m_grid.at(point)->m_hval = getOctileDist(m_grid.at(point)->getColRow(), m_grid.at(m_goalIndex)->getColRow());
-			m_grid.at(point)->m_fval = m_grid.at(point)->m_hval + m_grid.at(point)->m_gval;
-			m_grid.at(point)->setMarked(true);
-
-			if (fsi.m_minfval > m_grid.at(point)->m_fval)
+			if (point == fsi.m_interval[fsi.m_interval.size() - 1])
 			{
-				fsi.m_minfval = m_grid.at(point)->m_fval;
-				fsi.m_minValTile = m_grid.at(point);
+				if (firstDiag)
+				{
+					if (tryToUpdateDiagonalFsiPoint(t_parentBoundary.m_eni[0], fsi.m_dir, firstDiagStartPoint))
+					{
+						fsiUpdated = true;
+						setupFsiPoint(t_parentBoundary.m_eni[0], fsi);
+					}
+				}
+				if (lastDiag)
+				{
+					if (tryToUpdateDiagonalFsiPoint(t_parentBoundary.m_eni[t_parentBoundary.m_eni.size() - 1], fsi.m_dir, (point == fsi.m_interval[0])))
+					{
+						fsiUpdated = true;
+						setupFsiPoint(t_parentBoundary.m_eni[t_parentBoundary.m_eni.size() - 1], fsi);
+					}
+				}
 			}
 		}
 
-		//#########################################################################
-		{//this might not be functioning as expected
-			//if goal is inside FSI
-			if (std::find(fsi.m_interval.begin(), fsi.m_interval.end(), m_goalIndex) != fsi.m_interval.end())
+		//if goal is inside FSI
+		if (std::find(fsi.m_interval.begin(), fsi.m_interval.end(), m_goalIndex) != fsi.m_interval.end())
+		{
+			//goal's fval is not greater than (PP) parent search node's minfval
+			if (t_parentBoundary.m_previous != nullptr && m_grid.at(m_goalIndex)->m_fval <= t_parentBoundary.m_previous->m_fval)
 			{
-				//goal's fval is not greater than (PP) parent search node's minfval
-				if (t_parentBoundary.m_previous != nullptr && m_grid.at(m_goalIndex)->m_fval <= t_parentBoundary.m_previous->m_fval)
-				{
-					std::cout << "\t\t\t\tApparently Goal found in FSI" << std::endl;
-					return true;
-				}
+				std::cout << "\t\t\t\Goal found in FSI" << std::endl;
+				return true;
 			}
 		}
 	}
@@ -2342,6 +2600,20 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 		}
 	}
 	return false;
+}
+
+void GridManager::setupFsiPoint(int& t_point, SearchNode& t_fsi)
+{
+	m_grid.at(t_point)->m_mode = GridTile::ReaMode::Hpoint;
+	m_grid.at(t_point)->m_hval = getOctileDist(m_grid.at(t_point)->getColRow(), m_grid.at(m_goalIndex)->getColRow());
+	m_grid.at(t_point)->m_fval = m_grid.at(t_point)->m_hval + m_grid.at(t_point)->m_gval;
+	m_grid.at(t_point)->setMarked(true);
+
+	if (t_fsi.m_minfval > m_grid.at(t_point)->m_fval)
+	{
+		t_fsi.m_minfval = m_grid.at(t_point)->m_fval;
+		t_fsi.m_minValTile = m_grid.at(t_point);
+	}
 }
 
 void GridManager::calcENI(BoundaryNode& t_parentBoundary)
@@ -2508,23 +2780,11 @@ void GridManager::calcFSI(BoundaryNode& t_parentBoundary)
 			t_parentBoundary.m_fsi.emplace_back(index, t_parentBoundary.m_dir);
 			fsiIndex++;
 		}
-		//if (fsiStarted && m_grid.at(index)->getType() == GridTile::TileType::Obstacle)
-		//{
-		//	t_parentBoundary.m_fsi.at(fsiIndex).m_interval.push_back(index - offset);
-		//	fsiStarted = false;
-		//	fsiIndex++;
-		//}
-		//else if (!fsiStarted && m_grid.at(index)->getType() != GridTile::TileType::Obstacle)
-		//{
-		//	t_parentBoundary.m_fsi.emplace_back(index, t_parentBoundary.m_dir);
-		//	t_parentBoundary.m_fsi.at(fsiIndex).m_dir = t_parentBoundary.m_dir;
-		//	fsiStarted = true;
-		//}
 
 		index += offset;
 	}
 	if (t_parentBoundary.m_eni.at(t_parentBoundary.m_eni.size() - 1) ==
-		getNeighbourIndex(cornerCheck2, t_parentBoundary.m_boundary.at(t_parentBoundary.m_boundary.size() - 1))) //check if this is a special case		
+		getNeighbourIndex(cornerCheck2, t_parentBoundary.m_boundary.at(t_parentBoundary.m_boundary.size() - 1))) //check if this is a special case
 	{
 		if (m_grid.at(index)->getType() != GridTile::TileType::Obstacle &&
 			m_grid.at(getNeighbourIndex(diagonalCheck2, index))->getType() != GridTile::TileType::Obstacle)

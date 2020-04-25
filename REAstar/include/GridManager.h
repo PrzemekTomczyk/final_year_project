@@ -73,12 +73,11 @@ private:
 	//#######################
 	//rea* functions
 	bool successor(BoundaryNode& t_parentBoundary);
+	void setupFsiPoint(int& t_point, SearchNode& t_fsi);
 	void calcENI(BoundaryNode& t_parentBoundary);
 	void calcFSI(BoundaryNode& t_parentBoundary);
 	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
 	float getOctileDist(sf::Vector2i t_p1, sf::Vector2i t_p2);
-	NeighbourIndex directionToGoal(int t_tileIndex);
-	bool rightAngleToGoal(int t_tileIndex);
 
 	//functions for finding rectangle boundaries
 	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin, bool t_expandOpposite, int t_sideLimit1, int t_sideLimit2);
@@ -86,11 +85,12 @@ private:
 	int getSideBoundary(NeighbourIndex& t_direction, int& t_expandOrigin, int& t_currentLimit, bool& t_goalFound, int& t_rectOrigin);
 	void markBorderers(std::vector<int>& t_rectBorder);
 	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
-	bool tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_dir);
-	//void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen);
+	bool tryToUpdateSpecialCaseFsiPoint(int& t_point, NeighbourIndex& t_dir, bool t_startPoint);
+	bool tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_dir, bool t_startPoint);
 	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen, SearchNode* t_cbn, NeighbourIndex& t_boundaryDir);
 	void tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, float& t_octileP1, float& t_octileP2);
 	bool processBoundaries(SearchNode* t_cbn, BoundaryNode& t_wall1, BoundaryNode& t_wall2, BoundaryNode& t_wall3);
+	bool fsiSpecialCasePoint(int& t_point, BoundaryNode& t_boundary);
 
 	//new funcs
 	bool expand(SearchNode* t_cbn);
