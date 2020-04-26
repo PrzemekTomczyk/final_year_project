@@ -32,7 +32,7 @@ void Game::run()
 {
 	m_window.setActive(false);
 
-	boost::thread t{ &Game::renderingThread, this };
+	//boost::thread t{ &Game::renderingThread, this };
 
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
@@ -49,10 +49,9 @@ void Game::run()
 		}
 		//imguiUpdate(timePerFrame);
 		//ImGui::SFML::Render(m_window);
-		//render();
+		render();
 	}
-	t.join();
-	//ImGui::SFML::Shutdown();
+	//t.join();
 }
 
 void Game::processEvents()

@@ -91,8 +91,7 @@ private:
 
 public:
 	ReaMode m_mode;
-	float m_gval;
-	float m_hval;
-	float m_fval;
+	double m_gval;
+	double m_hval;
+	double m_fval;
 };
-

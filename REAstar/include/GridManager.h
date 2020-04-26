@@ -76,8 +76,8 @@ private:
 	void setupFsiPoint(int& t_point, SearchNode& t_fsi);
 	void calcENI(BoundaryNode& t_parentBoundary);
 	void calcFSI(BoundaryNode& t_parentBoundary);
-	float getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
-	float getOctileDist(sf::Vector2i t_p1, sf::Vector2i t_p2);
+	double getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2);
+	double getOctileDist(sf::Vector2i t_p1, sf::Vector2i t_p2);
 
 	//functions for finding rectangle boundaries
 	bool getRectInDirection(std::vector<int>& t_rectBoundary, NeighbourIndex& t_direction, int& t_origin, bool t_expandOpposite, int t_sideLimit1, int t_sideLimit2);
@@ -87,10 +87,11 @@ private:
 	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
 	bool tryToUpdateSpecialCaseFsiPoint(int& t_point, NeighbourIndex& t_dir, bool t_startPoint);
 	bool tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_dir, bool t_startPoint);
-	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, float& t_cardinalLen, float& t_diagLen, SearchNode* t_cbn, NeighbourIndex& t_boundaryDir);
-	void tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, float& t_octileP1, float& t_octileP2);
-	bool processBoundaries(SearchNode* t_cbn, BoundaryNode& t_wall1, BoundaryNode& t_wall2, BoundaryNode& t_wall3);
+	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, double& t_cardinalLen, double& t_diagLen, SearchNode* t_cbn, NeighbourIndex& t_boundaryDir, std::vector<int>& t_rectPoints);
+	void tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, double& t_octileP1, double& t_octileP2);
+	bool processBoundaries(SearchNode* t_cbn, BoundaryNode& t_wall1, BoundaryNode& t_wall2, BoundaryNode& t_wall3, std::vector<int>& t_rectPoints);
 	bool fsiSpecialCasePoint(int& t_point, BoundaryNode& t_boundary);
+	bool checkIfWithinRect(int& t_point, std::vector<int>& t_rectPoints);
 
 	//new funcs
 	bool expand(SearchNode* t_cbn);
@@ -99,7 +100,7 @@ private:
 	std::vector<int> calcBoundary(int& t_corner1, int& t_corner2, NeighbourIndex& t_dir);
 	bool isValidBoundary(int& t_boundary, NeighbourIndex& t_directionOfBoundary);
 	bool getStartRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin);
-	bool getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin, std::vector<int>& t_fsiInterval);
+	bool getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin, std::vector<int>& t_fsiInterval, std::vector<int>& t_rectPoints);
 	int getCurrentSideLimit(NeighbourIndex& t_expandDir, int& t_origin, std::vector<int>& t_interval, NeighbourIndex& t_sideDirection);
 
 	//rea* open list
