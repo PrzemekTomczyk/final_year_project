@@ -493,7 +493,11 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 			//pop from pq
 			pq.pop();
 			current->setVisited(true);
-			//f_visit(current);
+
+#ifdef _DEBUG
+			f_visit(current);
+#endif // _DEBUG
+
 
 			//for each child node c of pq.top() - 8 neighbours
 			for (int i = 0; i < 8; i++)
@@ -555,11 +559,15 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 				}//end if index and TileType check
 
 			}//end for
-			//tempRender();
+#ifdef _DEBUG
+			tempRender();
+#endif // _DEBUG
 		}//end while
 
 		if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {
 			GridTile* ptr = m_grid.at(m_goalIndex);
+
+			std::cout << "Path found!" << std::endl;
 
 			//add all nodes with previous to the path
 			while (nullptr != ptr->getPrevious())
@@ -567,9 +575,12 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 				if (ptr != m_grid.at(m_goalIndex) && ptr != m_grid.at(m_startIndex))
 				{
 					ptr->setToPath();
+					std::cout << ptr->getIndex();
+					std::cout << " -> ";
 				}
 				ptr = ptr->getPrevious();
 			}
+			std::cout << ptr->getIndex() << std::endl;
 		}
 	}//end if
 }
