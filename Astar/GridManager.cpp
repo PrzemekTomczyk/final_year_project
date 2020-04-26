@@ -493,7 +493,7 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 			//pop from pq
 			pq.pop();
 			current->setVisited(true);
-			f_visit(current);
+			//f_visit(current);
 
 			//for each child node c of pq.top() - 8 neighbours
 			for (int i = 0; i < 8; i++)
@@ -555,7 +555,7 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 				}//end if index and TileType check
 
 			}//end for
-			tempRender();
+			//tempRender();
 		}//end while
 
 		if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {
