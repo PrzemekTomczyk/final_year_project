@@ -2410,6 +2410,12 @@ bool GridManager::expand(SearchNode* t_cbn)
 		return true;
 	}
 
+	if (!t_cbn->m_minValTile)
+	{
+		int stopRightThereCriminalScum = 1;
+		return false;
+	}
+
 	std::vector<BoundaryNode> boundaryNodes;
 	int origin = t_cbn->m_minValTile->getIndex();
 	if (getRect(boundaryNodes, t_cbn->m_dir, origin, t_cbn->m_interval))
