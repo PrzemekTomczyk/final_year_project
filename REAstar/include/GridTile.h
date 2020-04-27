@@ -24,7 +24,9 @@ public:
 	};
 	enum class ReaMode
 	{
-		Gpoint
+		Gpoint,
+		Hpoint,
+		None
 	};
 
 
@@ -89,6 +91,7 @@ private:
 
 public:
 	ReaMode m_mode;
-	float m_gval;
+	double m_gval;
+	double m_hval;
+	double m_fval;
 };
-

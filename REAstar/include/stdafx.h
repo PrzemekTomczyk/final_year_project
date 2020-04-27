@@ -39,11 +39,6 @@
 //SFML
 #include <SFML/Graphics.hpp>
 
-//imgui
-#include "imgui/imgui.h"
-#include "imguiSFML/imgui-SFML.h"
-
-
 //some external libraries
 #include <Thor/Vectors.hpp>
 #include <Thor/Time.hpp>

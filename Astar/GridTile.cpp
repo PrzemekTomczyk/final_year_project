@@ -172,7 +172,7 @@ int GridTile::getIndex() const
 
 float GridTile::getDiagonal() const
 {
-	return thor::length(m_tile.getSize());
+	return thor::squaredLength(m_tile.getSize());
 }
 
 sf::Vector2f GridTile::getPos()

@@ -28,6 +28,7 @@ GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, sf::Fon
 	m_text.setFont(m_font);
 	m_text.setCharacterSize(12);
 	m_text.setFillColor(sf::Color::Black);
+	m_mode = ReaMode::None;
 }
 
 GridTile::~GridTile()
@@ -71,7 +72,10 @@ void GridTile::setToPath()
 
 void GridTile::setToCorner()
 {
-	m_type = TileType::Corner;
+	if (m_type == TileType::None)
+	{
+		m_type = TileType::Corner;
+	}
 }
 
 void GridTile::reset()
@@ -81,6 +85,10 @@ void GridTile::reset()
 	setVisited(false);
 	//reset type
 	m_type = TileType::None;
+	m_mode = ReaMode::None;
+	m_fval = std::numeric_limits<int>::max();
+	m_gval = std::numeric_limits<int>::max();
+	m_hval = std::numeric_limits<int>::max();
 }
 
 bool GridTile::getVisited() const
@@ -110,7 +118,7 @@ float GridTile::getTotalDist() const
 
 void GridTile::setVisited(bool t_visited)
 {
-	if (m_type != TileType::Goal && m_type != TileType::Start && m_type != TileType::Corner)
+	if (t_visited && m_type != TileType::Goal && m_type != TileType::Start && m_type != TileType::Corner)
 	{
 		m_type = TileType::Visited;
 	}
@@ -119,7 +127,7 @@ void GridTile::setVisited(bool t_visited)
 
 void GridTile::setMarked(bool t_marked)
 {
-	if (m_type != TileType::Goal && m_type != TileType::Start && m_type != TileType::Corner)
+	if (t_marked && m_type != TileType::Goal && m_type != TileType::Start && m_type != TileType::Corner)
 	{
 		m_type = TileType::Marked;
 	}
@@ -178,7 +186,7 @@ int GridTile::getIndex() const
 
 float GridTile::getDiagonal() const
 {
-	return thor::length(m_tile.getSize());
+	return thor::squaredLength(m_tile.getSize());
 }
 
 sf::Vector2f GridTile::getPos()
@@ -207,7 +215,7 @@ void GridTile::setColour()
 	case GridTile::TileType::Start:
 		m_rgb[0] = 255;
 		m_rgb[1] = 0;
-		m_rgb[2] = 0;
+		m_rgb[2] = 255;
 		break;
 	case GridTile::TileType::Goal:
 		m_rgb[0] = 0;
@@ -226,7 +234,7 @@ void GridTile::setColour()
 		break;
 	case GridTile::TileType::Marked:
 		m_rgb[0] = 255;
-		m_rgb[1] = 255;
+		m_rgb[1] = 0;
 		m_rgb[2] = 0;
 		break;
 	case GridTile::TileType::Visited:
