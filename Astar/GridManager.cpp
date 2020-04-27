@@ -607,15 +607,20 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 		if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {
 			GridTile* ptr = m_grid.at(m_goalIndex);
 
+			std::cout << "Path found!" << std::endl;
+
 			//add all nodes with previous to the path
 			while (nullptr != ptr->getPrevious())
 			{
 				if (ptr != m_grid.at(m_goalIndex) && ptr != m_grid.at(m_startIndex))
 				{
 					ptr->setToPath();
+					std::cout << ptr->getIndex();
+					std::cout << " -> ";
 				}
 				ptr = ptr->getPrevious();
 			}
+			std::cout << ptr->getIndex() << std::endl;
 		}
 	}//end if
 }
