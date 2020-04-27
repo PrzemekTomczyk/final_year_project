@@ -14,7 +14,7 @@ class TileComparer
 public:
 	bool operator()(const GridTile* t1, const GridTile* t2)
 	{
-		return t1->getEstDist() > t2->getEstDist();
+		return t1->getTotalDist() > t2->getTotalDist();
 	}
 };
 
@@ -24,12 +24,13 @@ class GridManager
 	{
 		LEFT = 0,
 		RIGHT = 1,
-		TOP_LEFT = 2,
-		TOP = 3,
-		TOP_RIGHT = 4,
-		BOTTOM_LEFT = 5,
-		BOTTOM = 6,
-		BOTTOM_RIGHT = 7
+		TOP = 2,
+		BOTTOM = 3,
+		TOP_LEFT = 4,
+		TOP_RIGHT = 5,
+		BOTTOM_LEFT = 6,
+		BOTTOM_RIGHT = 7,
+		NONE = 8
 	};
 
 public:

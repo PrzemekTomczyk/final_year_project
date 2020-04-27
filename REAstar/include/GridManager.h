@@ -15,6 +15,7 @@
 #include "RectNode.h"
 #include "Utils.h"
 #include "SearchNode.h"
+#include <chrono> 
 
 class TileComparer
 {
@@ -91,7 +92,7 @@ private:
 	void tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, double& t_octileP1, double& t_octileP2);
 	bool processBoundaries(SearchNode* t_cbn, BoundaryNode& t_wall1, BoundaryNode& t_wall2, BoundaryNode& t_wall3, std::vector<int>& t_rectPoints);
 	bool fsiSpecialCasePoint(int& t_point, BoundaryNode& t_boundary);
-	bool checkIfWithinRect(int& t_point, std::vector<int>& t_rectPoints);
+	bool checkIfWithinRect(int& t_point, int& t_topLeft, int& t_botRight);
 
 	//new funcs
 	bool expand(SearchNode* t_cbn);
@@ -106,6 +107,8 @@ private:
 	//rea* open list
 	std::priority_queue<SearchNode*, std::vector<SearchNode*>, NodeComparer> m_openlist;
 	std::vector<SearchNode*> m_searchNodes;
+	bool m_useRea = true;
+	bool m_debug = false;
 
 	//vectors
 	std::vector<GridTile*> m_grid;
@@ -147,9 +150,10 @@ private:
 	bool m_changedGrid = false;
 	bool m_updateRequired = false;
 	bool m_deleteMode = false;
-	bool m_redrawNeeded = false;
-
-	thor::Timer m_stepTimer;
+	bool m_enterPressed = false;
+	bool m_tabPressed = false;
+	bool m_getPath = false;
+	bool m_f5Pressed = false;
 
 	//ints
 	int m_goalIndex = -1;

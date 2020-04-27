@@ -23,7 +23,6 @@
 
 #include "GridManager.h"
 
-
 enum class GridLayout
 {
 	TEST,
@@ -43,22 +42,20 @@ public:
 
 private:
 	const int TEST_TILE_AMOUNT = 140;
-	const int SANDBOX_TILE_AMOUNT = 2500;
+	const int SANDBOX_TILE_AMOUNT = 10000;
 
 	const int TEST_LAYOUT_TILES_PER_ROW = 10;
 	const int TEST_LAYOUT_ROWS = 14;
 
-	const int SANDBOX_LAYOUT_TILES_PER_ROW = 50;
-	const int SANDBOX_LAYOUT_ROWS = 50;
+	const int SANDBOX_LAYOUT_TILES_PER_ROW = 100;
+	const int SANDBOX_LAYOUT_ROWS = 100;
 
 	// functions
 	void processEvents();
 	void update(sf::Time t_deltaTime);
 	void render();
-	void renderingThread();
 	void processScreenEvents();
 	void setupGrid();
-	//void imguiUpdate(sf::Time t_deltaTime);
 
 	void initLayout();
 
@@ -75,12 +72,5 @@ private:
 	//text
 	sf::Text m_tooltipText;
 	sf::RectangleShape m_textBackground;
-
-	//multithreading
-	boost::condition_variable m_conditional;
-	boost::mutex m_mutex;
-	bool m_rendering = false;
-	bool m_creatingGrid = false;
-	bool m_renderGui = false;
 };
 

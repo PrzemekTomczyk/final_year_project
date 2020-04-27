@@ -15,8 +15,8 @@ GridManager::GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_max
 	LEFT_BOTTOM_TILE(BOTTOM_TILE - 1),
 	RIGHT_BOTTOM_TILE(BOTTOM_TILE + 1)
 {
-	m_placeString = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPLACE MODE";
-	m_deleteString = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDELETE MODE";
+	m_placeString = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPLACE MODE";
+	m_deleteString = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDELETE MODE";
 }
 
 GridManager::~GridManager()
@@ -32,10 +32,15 @@ void GridManager::update()
 {
 	handleInput();
 
-	if (!m_redrawNeeded && m_updateRequired && m_startIndex > -1 && m_goalIndex > -1)
+	if (m_updateRequired && !m_middleBtn)
 	{
+		resetNonObstacles();
 		m_updateRequired = false;
+	}
 
+	if (m_getPath && m_startIndex > -1 && m_goalIndex > -1)
+	{
+		m_getPath = false;
 		reaAlgorithm();
 	}
 	else if (m_startIndex == -1 || m_goalIndex == -1 && !m_lines.empty())
@@ -46,7 +51,6 @@ void GridManager::update()
 
 void GridManager::render()
 {
-	m_redrawNeeded = false;
 	m_window.draw(m_placeModeTxt);
 	for (int i = 0; i < m_grid.size(); i++)
 	{
@@ -56,6 +60,11 @@ void GridManager::render()
 	for (int i = 0; i < m_lines.size(); i++)
 	{
 		m_window.draw(&m_lines[0], m_lines.size(), sf::Lines);
+		if (i > MAX_TILES)
+		{
+			m_lines.clear();
+			std::cout << "Unexpected error during line render occured!" << std::endl;
+		}
 	}
 }
 
@@ -79,7 +88,7 @@ void GridManager::handleInput()
 
 void GridManager::handleKeyboard()
 {
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::R) && !m_rPressed)
+	if (!m_rPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::R))
 	{
 		resetGrid();
 		m_rPressed = true;
@@ -89,7 +98,39 @@ void GridManager::handleKeyboard()
 		m_rPressed = false;
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && !m_spacePressed)
+	if (!m_tabPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Tab))
+	{
+		m_tabPressed = true;
+		m_useRea = !m_useRea;
+	}
+	else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Tab))
+	{
+		m_tabPressed = false;
+	}
+
+	if (!m_f5Pressed && sf::Keyboard::isKeyPressed(sf::Keyboard::F5))
+	{
+		m_f5Pressed = true;
+		m_debug = !m_debug;
+	}
+	else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::F5))
+	{
+		m_f5Pressed = false;
+	}
+
+	if (!m_getPath && !m_enterPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+	{
+		m_enterPressed = true;
+		m_getPath = true;
+
+	}
+	else if (m_enterPressed && !sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+	{
+		m_enterPressed = false;
+	}
+
+
+	if (!m_spacePressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 	{
 		m_spacePressed = true;
 		m_deleteMode = !m_deleteMode;
@@ -124,7 +165,7 @@ void GridManager::handleKeyboard()
 void GridManager::handleMouse()
 {
 	//handle lmb
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !m_leftBtn)
+	if (!m_leftBtn && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
 	{
 		m_leftBtn = true;
 		handleLeftClick(sf::Mouse::getPosition(m_window));
@@ -135,7 +176,7 @@ void GridManager::handleMouse()
 	}
 
 	//handle rmb
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) && !m_rightBtn)
+	if (!m_rightBtn && sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
 	{
 		m_rightBtn = true;
 		handleRightClick(sf::Mouse::getPosition(m_window));
@@ -187,9 +228,6 @@ void GridManager::handleLeftClick(sf::Vector2i t_mousePos)
 
 			m_grid.at(tileIndex)->setToGoal();
 			m_goalIndex = tileIndex;
-
-			resetNonObstacles();
-			m_redrawNeeded = true;
 		}
 	}
 }
@@ -209,7 +247,6 @@ void GridManager::handleRightClick(sf::Vector2i t_mousePos)
 			}
 			m_grid.at(tileIndex)->setToStart();
 			m_startIndex = tileIndex;
-			m_redrawNeeded = true;
 		}
 	}
 }
@@ -264,6 +301,7 @@ void GridManager::resetGrid()
 
 void GridManager::resetNonObstacles()
 {
+	m_lines.clear();
 	for (int i = 0; i < m_grid.size(); i++)
 	{
 		if (m_grid.at(i)->getType() != GridTile::TileType::Obstacle && m_grid.at(i)->getType() != GridTile::TileType::Start && m_grid.at(i)->getType() != GridTile::TileType::Goal)
@@ -328,7 +366,7 @@ int GridManager::getNeighbourIndex(NeighbourIndex t_neighbour, int t_index)
 	{
 		return -1;
 	}
-	else if (thor::length(m_grid.at(t_index)->getPos() - m_grid.at(neighbourIndex)->getPos()) > m_grid.at(t_index)->getDiagonal())
+	else if (thor::squaredLength(m_grid.at(t_index)->getPos() - m_grid.at(neighbourIndex)->getPos()) > m_grid.at(t_index)->getDiagonal())
 	{
 		return -1;
 	}
@@ -478,10 +516,8 @@ void GridManager::backTrack()
 	{
 		//reaGridRedraw();
 		//throw std::invalid_argument("goal's previous ptr not set!");
-#ifdef _DEBUG
-		std::cout << "goal's previous ptr not set!" << std::endl;
-
-#endif // _DEBUG
+		if (m_debug)
+			std::cout << "goal's previous ptr not set!" << std::endl;
 	}
 }
 
@@ -491,7 +527,6 @@ void GridManager::backTrack()
 /// <param name="t_point">index value of a grid tile from which to back track</param>
 void GridManager::backTrackFrom(int& t_point)
 {
-#ifdef _DEBUG
 	if (m_grid.at(t_point)->getPrevious() != nullptr) {
 		GridTile* ptr = m_grid.at(t_point);
 
@@ -509,13 +544,7 @@ void GridManager::backTrackFrom(int& t_point)
 			ptr = ptr->getPrevious();
 
 		}
-		//for (int i = 0; i < m_lines.size(); i++)
-		//{
-		//	m_window.draw(&m_lines[0], m_lines.size(), sf::Lines);
-		//}
 	}
-
-#endif // _DEBUG
 }
 
 void GridManager::setupRectCorners(std::vector<int>& t_rectCorners)
@@ -570,10 +599,9 @@ void GridManager::init(float t_textOffset)
 
 void GridManager::reaAlgorithm()
 {
-#ifdef _DEBUG
-	std::cout << "Starting REA*..." << std::endl;
+	if (m_debug)
+		std::cout << "Starting REA*..." << std::endl;
 
-#endif // _DEBUG
 	//Initialise
 	for (int i = m_searchNodes.size() - 1; i >= 0; i--)
 	{
@@ -589,17 +617,19 @@ void GridManager::reaAlgorithm()
 	m_lines.clear();
 	resetNonObstacles();
 
+	auto start = std::chrono::high_resolution_clock::now();
+
 	if (insertS())
 	{
 		//goal has been found, backtrack
 		backTrack();
 		return;
 	}
-#ifndef _DEBUG
-	//std::this_thread::sleep_for(std::chrono::milliseconds(250));
-#elif _DEBUG
-	reaGridRedraw();
-#endif // _DEBUG
+	if (m_debug)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		reaGridRedraw();
+	}
 
 	SearchNode* currentBestNode;
 	while (!m_openlist.empty())
@@ -611,25 +641,27 @@ void GridManager::reaAlgorithm()
 		if (expand(currentBestNode))
 		{
 			//goal has been found!
-#ifdef _DEBUG
-			std::cout << "Expand returned true, backtracking!" << std::endl;
 
-#endif // _DEBUG
+			if (!m_debug)
+			{
+				std::cout << "Expand returned true, backtracking!" << std::endl;
+
+				auto end = std::chrono::high_resolution_clock::now();
+				auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+				std::cout << "REA* time taken: " << duration.count() << "ms" << std::endl;
+			}
 			backTrack();
 			return;
 		}
-#ifndef _DEBUG
-		//std::this_thread::sleep_for(std::chrono::milliseconds(250));
-#elif _DEBUG
-		reaGridRedraw();
-#endif // _DEBUG
+
+		if (m_debug)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(250));
+			reaGridRedraw();
+		}
 	}
 
-	//path not found
-#ifdef _DEBUG
 	std::cout << "Failed to find a path to the goal!" << std::endl;
-
-#endif // _DEBUG
 }
 
 double GridManager::getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2)
@@ -1322,7 +1354,8 @@ bool GridManager::tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir)
 	if (updated && previous)
 	{
 		m_grid.at(t_point)->setPrevious(previous);
-		backTrackFrom(t_point);
+		if (m_debug)
+			backTrackFrom(t_point);
 	}
 	return updated;
 }
@@ -1358,12 +1391,12 @@ bool GridManager::fsiSpecialCasePoint(int& t_point, BoundaryNode& t_boundary)
 	return false;
 }
 
-bool GridManager::checkIfWithinRect(int& t_point, std::vector<int>& t_rectPoints)
+bool GridManager::checkIfWithinRect(int& t_point, int& t_topLeft, int& t_botRight)
 {
-	if (m_grid.at(t_point)->getColRow().x < m_grid.at(t_rectPoints[0])->getColRow().x ||
-		m_grid.at(t_point)->getColRow().x > m_grid.at(t_rectPoints[1])->getColRow().x ||
-		m_grid.at(t_point)->getColRow().y < m_grid.at(t_rectPoints[0])->getColRow().y ||
-		m_grid.at(t_point)->getColRow().y > m_grid.at(t_rectPoints[1])->getColRow().y)
+	if (m_grid.at(t_point)->getColRow().x < m_grid.at(t_topLeft)->getColRow().x ||
+		m_grid.at(t_point)->getColRow().x > m_grid.at(t_botRight)->getColRow().x ||
+		m_grid.at(t_point)->getColRow().y < m_grid.at(t_topLeft)->getColRow().y ||
+		m_grid.at(t_point)->getColRow().y > m_grid.at(t_botRight)->getColRow().y)
 	{
 		return false;
 	}
@@ -1474,7 +1507,8 @@ bool GridManager::tryToUpdateSpecialCaseFsiPoint(int& t_point, NeighbourIndex& t
 	if (updated && previous)
 	{
 		m_grid.at(t_point)->setPrevious(previous);
-		backTrackFrom(t_point);
+		if (m_debug)
+			backTrackFrom(t_point);
 	}
 	return updated;
 }
@@ -1557,7 +1591,8 @@ bool GridManager::tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_di
 	int diagonalParent = getNeighbourIndex(diagonalParentCheck, t_point);
 	int cardinalParent = getNeighbourIndex(cardinalParentCheck, t_point);
 
-	if (m_grid.at(fsiNeighbour)->getType() != GridTile::TileType::Obstacle &&
+	if (fsiNeighbour > -1 && diagonalParent > -1 && cardinalParent > -1 &&
+		m_grid.at(fsiNeighbour)->getType() != GridTile::TileType::Obstacle &&
 		m_grid.at(diagonalParent)->getType() != GridTile::TileType::Obstacle &&
 		m_grid.at(cardinalParent)->getType() != GridTile::TileType::Obstacle)
 	{
@@ -1578,7 +1613,8 @@ bool GridManager::tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_di
 	if (updated && previous)
 	{
 		m_grid.at(t_point)->setPrevious(previous);
-		backTrackFrom(t_point);
+		if (m_debug)
+			backTrackFrom(t_point);
 	}
 	return updated;
 }
@@ -1609,7 +1645,7 @@ void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoin
 		while (previous && looping)
 		{
 			int pointIndex = previous->getIndex();
-			if (checkIfWithinRect(pointIndex, t_rectPoints))
+			if (checkIfWithinRect(pointIndex, t_rectPoints[0], t_rectPoints[1]))
 			{
 				previous = previous->getPrevious();
 			}
@@ -1622,7 +1658,8 @@ void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoin
 	if (previous)
 	{
 		m_grid.at(t_point)->setPrevious(previous);
-		backTrackFrom(t_point);
+		if (m_debug)
+			backTrackFrom(t_point);
 	}
 }
 
@@ -1808,7 +1845,8 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 						p2 = -1;
 					}
 				}
-				backTrackFrom(p);
+				if (m_debug)
+					backTrackFrom(p);
 			}
 			if (successor(northBoundary))
 			{
@@ -1966,7 +2004,8 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 						p2 = -1;
 					}
 				}
-				backTrackFrom(p);
+				if (m_debug)
+					backTrackFrom(p);
 			}
 			if (successor(southBoundary))
 			{
@@ -2126,7 +2165,8 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 						p2 = -1;
 					}
 				}
-				backTrackFrom(p);
+				if (m_debug)
+					backTrackFrom(p);
 			}
 			if (successor(westBoundary))
 			{
@@ -2286,7 +2326,8 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 						p2 = -1;
 					}
 				}
-				backTrackFrom(p);
+				if (m_debug)
+					backTrackFrom(p);
 			}
 			if (successor(eastBoundary))
 			{
@@ -2300,19 +2341,15 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 
 bool GridManager::expand(SearchNode* t_cbn)
 {
-#ifdef _DEBUG
-	std::cout << "\tExpand..." << std::endl;
-
-#endif // _DEBUG
+	if (m_debug)
+		std::cout << "\tExpand..." << std::endl;
 
 	bool foundGoal = false;
 
-	if (std::find(t_cbn->m_interval.begin(), t_cbn->m_interval.end(), m_goalIndex) != t_cbn->m_interval.end())
+	if (checkIfWithinRect(m_goalIndex, t_cbn->m_interval[0], t_cbn->m_interval[0]))
 	{
-#ifdef _DEBUG
-		std::cout << "\t\tApparently Goal found in Expand in CBN" << std::endl;
-
-#endif // _DEBUG
+		if (m_debug)
+			std::cout << "\t\tApparently Goal found in Expand in CBN" << std::endl;
 		return true;
 	}
 
@@ -2327,10 +2364,9 @@ bool GridManager::expand(SearchNode* t_cbn)
 	int origin = t_cbn->m_minValTile->getIndex();
 	if (getRect(boundaryNodes, t_cbn->m_dir, origin, t_cbn->m_interval, rectPoints))
 	{
-#ifdef _DEBUG
-		std::cout << "\t\tGoal found in a rectangle in Expand" << std::endl;
+		if (m_debug)
+			std::cout << "\t\tGoal found in a rectangle in Expand" << std::endl;
 
-#endif // _DEBUG
 		return true;
 	}
 
@@ -2361,18 +2397,15 @@ bool GridManager::expand(SearchNode* t_cbn)
 
 bool GridManager::insertS()
 {
-#ifdef _DEBUG
-	std::cout << "\tInsertS..." << std::endl;
+	if (m_debug)
+		std::cout << "\tInsertS..." << std::endl;
 
-#endif // _DEBUG
 	std::vector<BoundaryNode> boundaryNodes;
 
 	if (getStartRect(boundaryNodes, Utils::TOP, m_startIndex))
 	{
-#ifdef _DEBUG
-		std::cout << "\t\tGoal found in a rectangle in InsertS" << std::endl;
-
-#endif // _DEBUG
+		if (m_debug)
+			std::cout << "\t\tGoal found in a rectangle in InsertS" << std::endl;
 		return true;
 	}
 
@@ -2437,10 +2470,9 @@ bool GridManager::insertS()
 
 bool GridManager::successor(BoundaryNode& t_parentBoundary)
 {
-#ifdef _DEBUG
-	std::cout << "\t\t\tSuccessor..." << std::endl;
+	if (m_debug)
+		std::cout << "\t\t\tSuccessor..." << std::endl;
 
-#endif // _DEBUG
 	//ENI = extend neighbour interval of Parent Boundary;
 	//calculate ENI
 	calcENI(t_parentBoundary);
@@ -2450,10 +2482,8 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 
 	if (t_parentBoundary.m_fsi.size() == 0)
 	{
-#ifdef _DEBUG
-		std::cout << "\t\t\t\tSuccessor Quit - FSI = 0..." << std::endl;
-
-#endif // _DEBUG
+		if (m_debug)
+			std::cout << "\t\t\t\tSuccessor Quit - FSI = 0..." << std::endl;
 		return false;
 	}
 
@@ -2529,9 +2559,8 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 			//goal's fval is not greater than (PP) parent search node's minfval
 			if (t_parentBoundary.m_previous != nullptr && m_grid.at(m_goalIndex)->m_fval <= t_parentBoundary.m_previous->m_fval)
 			{
-#ifdef _DEBUG
-				std::cout << "\t\t\t\Goal found in FSI" << std::endl;
-#endif // _DEBUG
+				if (m_debug)
+					std::cout << "\t\t\t\Goal found in FSI" << std::endl;
 
 				return true;
 			}
@@ -2689,16 +2718,6 @@ void GridManager::calcFSI(BoundaryNode& t_parentBoundary)
 	default:
 		break;
 	}
-
-	if (static_cast<int>(diagonalCheck1) == -1 || static_cast<int>(diagonalCheck2) == -1 || static_cast<int>(cornerCheck1) == -1 || static_cast<int>(cornerCheck2) == -1)
-	{
-#ifdef _DEBUG
-		//invalid index for neighbour check
-		std::cout << "REEEEEEEEEEEEEEEEEEEEEEEEEEEEE" << std::endl;
-
-#endif // _DEBUG
-	}
-
 
 	//boundary corners need to check for diagonals.
 	if (t_parentBoundary.m_eni.at(0) == getNeighbourIndex(cornerCheck1, t_parentBoundary.m_boundary.at(0)))//check if this is a special case

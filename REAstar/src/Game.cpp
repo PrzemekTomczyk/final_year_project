@@ -20,8 +20,6 @@ Game::Game() :
 
 	m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
 	setupGrid();
-
-	//ImGui::SFML::Init(m_window);
 }
 
 Game::~Game()
@@ -91,39 +89,15 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::F1))
 		{
-			m_creatingGrid = true;
-			boost::mutex::scoped_lock lock(m_mutex);
-
-			while (m_rendering)
-			{
-				m_conditional.wait(lock);
-				std::cout << "while in F1" << std::endl;
-			}
-
 			m_loadLayout = true;
 			m_layout = GridLayout::TEST;
 			initLayout();
-			m_creatingGrid = false;
-			lock.unlock();
-			m_conditional.notify_all();
 		}
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::F2))
 		{
-			m_creatingGrid = true;
-			boost::mutex::scoped_lock lock(m_mutex);
-
-			while (m_rendering)
-			{
-				m_conditional.wait(lock);
-				std::cout << "while in F2" << std::endl;
-			}
-
 			m_loadLayout = true;
 			m_layout = GridLayout::SANDBOX;
 			initLayout();
-			m_creatingGrid = false;
-			lock.unlock();
-			m_conditional.notify_all();
 		}
 	}
 	else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::F1) && !sf::Keyboard::isKeyPressed(sf::Keyboard::F2))
@@ -147,42 +121,6 @@ void Game::render()
 	//ImGui::SFML::Render(m_window);
 
 	m_window.display();
-}
-
-void Game::renderingThread()
-{
-	m_window.setActive(true);
-
-	// the rendering loop
-	while (m_window.isOpen())
-	{
-		boost::mutex::scoped_lock lock(m_mutex);
-
-		while (m_creatingGrid)
-		{
-			m_conditional.wait(lock);
-			std::cout << "waiting for grid setup" << std::endl;
-		}
-
-		if (!m_creatingGrid)
-		{
-			m_rendering = true;
-
-			m_window.clear(sf::Color::Black);
-
-			m_window.draw(m_textBackground);
-			m_window.draw(m_tooltipText);
-
-			if (m_grid != nullptr)
-			{
-				m_grid->render();
-			}
-
-			m_window.display();
-			m_rendering = false;
-			m_conditional.notify_all();
-		}
-	}
 }
 
 void Game::processScreenEvents()
@@ -268,9 +206,7 @@ void Game::setupGrid()
 		m_textBackground.setPosition((float)windowXSize, 0);
 		m_tooltipText.setPosition(m_textBackground.getPosition().x + outlineThiccness, m_textBackground.getPosition().y + outlineThiccness);
 
-		std::cout << "Starting Grid init" << std::endl;
 		m_grid->init(m_textBackground.getPosition().x + m_textBackground.getSize().x / 2.0f);
-		std::cout << "Finished Grid init" << std::endl;
 	}
 }
 

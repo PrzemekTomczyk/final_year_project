@@ -325,7 +325,7 @@ int GridManager::getNeighbourIndex(NeighbourIndex t_neighbour, int t_index)
 		neighbourIndex = -1;
 		return neighbourIndex;
 	}
-	else if (thor::length(m_grid.at(t_index)->getPos() - m_grid.at(neighbourIndex)->getPos()) > m_grid.at(t_index)->getDiagonal())
+	else if (thor::squaredLength(m_grid.at(t_index)->getPos() - m_grid.at(neighbourIndex)->getPos()) > m_grid.at(t_index)->getDiagonal())
 	{
 		neighbourIndex = -1;
 		return neighbourIndex;
@@ -493,15 +493,38 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 			//pop from pq
 			pq.pop();
 			current->setVisited(true);
+
+#ifdef _DEBUG
 			f_visit(current);
+#endif // _DEBUG
+
 
 			//for each child node c of pq.top() - 8 neighbours
+			bool skipTopLeft = false, skipTopRight = false, skipBotLeft = false, skipBotRight = false;
 			for (int i = 0; i < 8; i++)
 			{
 				GridManager::NeighbourIndex neighbour = static_cast<GridManager::NeighbourIndex>(i);
 				int tileIndex = getNeighbourIndex(neighbour, current->getIndex());
 				if (tileIndex > -1 && m_grid.at(tileIndex)->getType() != GridTile::TileType::Obstacle)
 				{
+					if (static_cast<GridManager::NeighbourIndex>(i) == GridManager::NeighbourIndex::TOP_LEFT && skipTopLeft)
+					{
+						continue;
+					}
+					else if (static_cast<GridManager::NeighbourIndex>(i) == GridManager::NeighbourIndex::TOP_RIGHT && skipTopRight)
+					{
+						continue;
+					}
+					else if (static_cast<GridManager::NeighbourIndex>(i) == GridManager::NeighbourIndex::BOTTOM_LEFT && skipBotLeft)
+					{
+						continue;
+					}
+					else if (static_cast<GridManager::NeighbourIndex>(i) == GridManager::NeighbourIndex::BOTTOM_RIGHT && skipBotRight)
+					{
+						continue;
+					}
+
+
 					GridTile* child = m_grid.at(tileIndex);
 
 					//if child != previous(pq.top())
@@ -553,9 +576,32 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 					}//end if we're not checking parent
 
 				}//end if index and TileType check
+				else if (tileIndex > -1)
+				{
+					if (static_cast<GridManager::NeighbourIndex>(i) == GridManager::NeighbourIndex::LEFT)
+					{
+						skipTopLeft = true;
+						skipBotLeft = true;
+					}
+					else if (static_cast<GridManager::NeighbourIndex>(i) == GridManager::NeighbourIndex::RIGHT)
+					{
+						skipTopRight = true;
+						skipBotRight = true;
+					}
+					else if (static_cast<GridManager::NeighbourIndex>(i) == GridManager::NeighbourIndex::TOP)
+					{
+						skipTopLeft = true;
+						skipTopRight = true;
+					}
+					else if (static_cast<GridManager::NeighbourIndex>(i) == GridManager::NeighbourIndex::BOTTOM)
+					{
+						skipBotLeft = true;
+						skipBotRight = true;
+					}
+				}
 
 			}//end for
-			tempRender();
+			//tempRender();
 		}//end while
 
 		if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {

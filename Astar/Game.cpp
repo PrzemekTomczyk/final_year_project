@@ -141,7 +141,13 @@ void Game::handleGridPathfinding()
 	if (m_start != "" || m_end != "")
 	{
 		std::cout << "#########################" << std::endl;
+
+		auto start = std::chrono::high_resolution_clock::now();
 		m_grid->aStar(visitTile);
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+		std::cout << "A* time taken: " << duration.count() << "ms" << std::endl;
+
 
 		m_start = "";
 		m_end = "";
