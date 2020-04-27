@@ -22,7 +22,7 @@ class TileComparer
 public:
 	bool operator()(const GridTile* t1, const GridTile* t2)
 	{
-		return t1->getEstDist() > t2->getEstDist();
+		return t1->getTotalDist() > t2->getTotalDist();
 	}
 };
 
@@ -45,11 +45,14 @@ public:
 	void update();
 	void render();
 	void reaGridRedraw();
+	void gridRedraw();
 	void init(float t_textOffset);
 	int getStartIndex();
 	int getGoalIndex();
 	void setToPath(int t_index);
-	void reaAlgorithm();
+	bool reaAlgorithm();
+	bool aStar();
+	void prePathfindReset();
 
 private:
 	void handleInput();
@@ -71,8 +74,6 @@ private:
 	void backTrackFrom(int& t_point);
 	void setupRectCorners(std::vector<int>& t_rectCorners);
 
-	//#######################
-	//rea* functions
 	bool successor(BoundaryNode& t_parentBoundary);
 	void setupFsiPoint(int& t_point, SearchNode& t_fsi);
 	void calcENI(BoundaryNode& t_parentBoundary);
@@ -122,6 +123,16 @@ private:
 	sf::Text m_placeModeTxt;
 	std::string m_placeString;
 	std::string m_deleteString;
+
+	sf::Text m_debugText;
+	sf::Text m_debugStateText;
+	std::string m_debugString;
+	std::string m_debugStateString;
+
+	sf::Text m_algTypeText;
+	sf::Text m_algText;
+	std::string m_algString;
+	std::string m_algTypeString;
 
 	//consts
 	const int TEST_LAYOUT = 140;

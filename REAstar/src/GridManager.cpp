@@ -21,11 +21,19 @@ GridManager::GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_max
 
 GridManager::~GridManager()
 {
-	for (auto p : m_grid)
+	for (GridTile* p : m_grid)
 	{
 		delete p;
 	}
 	m_grid.clear();
+	m_grid.shrink_to_fit();
+
+	for (SearchNode* p : m_searchNodes)
+	{
+		delete p;
+	}
+	m_searchNodes.clear();
+	m_searchNodes.shrink_to_fit();
 }
 
 void GridManager::update()
@@ -35,13 +43,43 @@ void GridManager::update()
 	if (m_updateRequired && !m_middleBtn)
 	{
 		resetNonObstacles();
+		m_lines.clear();
 		m_updateRequired = false;
 	}
 
 	if (m_getPath && m_startIndex > -1 && m_goalIndex > -1)
 	{
+		std::cout << "####################################" << std::endl;
+		std::cout << "Running ";
 		m_getPath = false;
-		reaAlgorithm();
+		prePathfindReset();
+		bool pathFound = false;
+
+		auto start = std::chrono::high_resolution_clock::now();
+
+		if (m_useRea)
+		{
+			std::cout << "REA*" << std::endl;
+			pathFound = reaAlgorithm();
+		}
+		else
+		{
+			std::cout << "A*" << std::endl;
+			pathFound = aStar();
+		}
+
+		if (pathFound)
+		{
+			if (!m_debug)
+			{
+				auto end = std::chrono::high_resolution_clock::now();
+				auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+				std::cout << "Time taken to find goal: " << duration.count() << "micro-seconds" << std::endl;
+			}
+
+			backTrack();
+		}
+
 	}
 	else if (m_startIndex == -1 || m_goalIndex == -1 && !m_lines.empty())
 	{
@@ -60,15 +98,49 @@ void GridManager::render()
 	for (int i = 0; i < m_lines.size(); i++)
 	{
 		m_window.draw(&m_lines[0], m_lines.size(), sf::Lines);
-		if (i > MAX_TILES)
+		if (i > MAX_TILES* MAX_TILES)
 		{
 			m_lines.clear();
 			std::cout << "Unexpected error during line render occured!" << std::endl;
+			break;
 		}
 	}
 }
 
 void GridManager::reaGridRedraw()
+{
+	for (int i = 0; i < m_grid.size(); i++)
+	{
+		m_grid.at(i)->render(m_window);
+	}
+	for (int i = 0; i < m_lines.size(); i++)
+	{
+		m_window.draw(&m_lines[0], m_lines.size(), sf::Lines);
+		if (i > MAX_TILES * MAX_TILES)
+		{
+			m_lines.clear();
+			std::cout << "Unexpected error during line render occured!" << std::endl;
+			break;
+		}
+	}
+	m_window.display();
+
+	bool loop = true;
+	bool nPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::N);
+	while (loop)
+	{
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
+		{
+			nPressed = true;
+		}
+		else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::N) && nPressed)
+		{
+			loop = false;
+		}
+	}
+}
+
+void GridManager::gridRedraw()
 {
 	for (int i = 0; i < m_grid.size(); i++)
 	{
@@ -118,7 +190,7 @@ void GridManager::handleKeyboard()
 		m_f5Pressed = false;
 	}
 
-	if (!m_getPath && !m_enterPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+	if (m_startIndex > -1 && m_goalIndex > -1 && !m_getPath && !m_enterPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
 	{
 		m_enterPressed = true;
 		m_getPath = true;
@@ -184,11 +256,6 @@ void GridManager::handleMouse()
 	else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
 	{
 		m_rightBtn = false;
-		//if (m_rightBtn && m_updateRequired)
-		//{
-		//	m_updateRequired = false;
-		//	resetNonObstacles();
-		//}
 	}
 
 	//handle mmb
@@ -301,7 +368,6 @@ void GridManager::resetGrid()
 
 void GridManager::resetNonObstacles()
 {
-	m_lines.clear();
 	for (int i = 0; i < m_grid.size(); i++)
 	{
 		if (m_grid.at(i)->getType() != GridTile::TileType::Obstacle && m_grid.at(i)->getType() != GridTile::TileType::Start && m_grid.at(i)->getType() != GridTile::TileType::Goal)
@@ -469,32 +535,19 @@ void GridManager::setTestLayout()
 /// <param name="t_p2">position of vertex 2</param>
 void GridManager::addLine(sf::Vector2f t_p1, sf::Vector2f t_p2)
 {
-	sf::Vertex vertex1;
-	sf::Vertex vertex2;
-
-	vertex1 = sf::Vertex(t_p1);
-	vertex2 = sf::Vertex(t_p2);
-
-	m_lines.push_back(vertex1);
-	m_lines.push_back(vertex2);
+	m_lines.emplace_back(t_p1);
+	m_lines.emplace_back(t_p2);
 }
 
 void GridManager::addLine(sf::Vector2f t_p1, sf::Vector2f t_p2, sf::Color t_colour)
 {
-	sf::Vertex vertex1;
-	sf::Vertex vertex2;
-
-	vertex1 = sf::Vertex(t_p1);
-	vertex2 = sf::Vertex(t_p2);
-	vertex1.color = t_colour;
-	vertex2.color = t_colour;
-
-	m_lines.push_back(vertex1);
-	m_lines.push_back(vertex2);
+	m_lines.emplace_back(t_p1, t_colour);
+	m_lines.emplace_back(t_p2, t_colour);
 }
 
 void GridManager::backTrack()
 {
+	std::cout << "Path taken: ";
 	m_lines.clear();
 	if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {
 		GridTile* ptr = m_grid.at(m_goalIndex);
@@ -505,12 +558,15 @@ void GridManager::backTrack()
 			if (ptr != m_grid.at(m_goalIndex) && ptr != m_grid.at(m_startIndex))
 			{
 				ptr->setToPath();
+				std::cout << ptr->getIndex();
+				std::cout << " -> ";
 			}
 
 			addLine(ptr->getPos(), ptr->getPrevious()->getPos());
 
 			ptr = ptr->getPrevious();
 		}
+		std::cout << ptr->getIndex() << std::endl;
 	}
 	else
 	{
@@ -542,7 +598,6 @@ void GridManager::backTrackFrom(int& t_point)
 			addLine(ptr->getPos(), ptr->getPrevious()->getPos(), sf::Color(col1, col2, col3, 255));
 
 			ptr = ptr->getPrevious();
-
 		}
 	}
 }
@@ -567,22 +622,30 @@ void GridManager::init(float t_textOffset)
 	m_tileSize.y = static_cast<float>(m_window.getSize().y) / static_cast<float>(NO_OF_ROWS);
 	m_tileSize.x = m_tileSize.y;
 	m_grid.reserve(MAX_TILES);
+	m_searchNodes.reserve(MAX_TILES * MAX_TILES);
 
 	for (int i = 0; i < NO_OF_ROWS; i++)
 	{
 		for (int j = 0; j < TILES_PER_ROW; j++)
 		{
 			int tileIndex = j + i * TILES_PER_ROW;
-			m_grid.push_back(
-				new GridTile(
-					sf::Vector2f(j * m_tileSize.x + (m_tileSize.x / 2.0f),
-						i * m_tileSize.y + (m_tileSize.y / 2.0f)
-					),
-					m_tileSize,
-					tileIndex,
-					m_font
-				)
+			GridTile* tile = new GridTile(
+				sf::Vector2f(j * m_tileSize.x + (m_tileSize.x / 2.0f),
+					i * m_tileSize.y + (m_tileSize.y / 2.0f)),
+				m_tileSize,
+				tileIndex,
+				m_font
 			);
+
+			try
+			{
+				m_grid.push_back(tile);
+			}
+			catch (const std::exception&)
+			{
+				delete tile;
+				throw;
+			}
 		}
 	}
 	m_placeModeTxt.setFont(m_font);
@@ -597,37 +660,19 @@ void GridManager::init(float t_textOffset)
 	}
 }
 
-void GridManager::reaAlgorithm()
+bool GridManager::reaAlgorithm()
 {
 	if (m_debug)
 		std::cout << "Starting REA*..." << std::endl;
 
-	//Initialise
-	for (int i = m_searchNodes.size() - 1; i >= 0; i--)
-	{
-		if (m_searchNodes[i])
-		{
-			delete m_searchNodes[i];
-			m_searchNodes[i] = nullptr;
-		}
-	}
-	m_searchNodes.clear();
-	m_openlist = std::priority_queue<SearchNode*, std::vector<SearchNode*>, NodeComparer>();
-
-	m_lines.clear();
-	resetNonObstacles();
-
-	auto start = std::chrono::high_resolution_clock::now();
-
 	if (insertS())
 	{
 		//goal has been found, backtrack
-		backTrack();
-		return;
+		return true;
 	}
 	if (m_debug)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		std::this_thread::sleep_for(std::chrono::milliseconds(Utils::DELAY_AMOUNT));
 		reaGridRedraw();
 	}
 
@@ -642,26 +687,22 @@ void GridManager::reaAlgorithm()
 		{
 			//goal has been found!
 
-			if (!m_debug)
+			if (m_debug)
 			{
-				std::cout << "Expand returned true, backtracking!" << std::endl;
-
-				auto end = std::chrono::high_resolution_clock::now();
-				auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-				std::cout << "REA* time taken: " << duration.count() << "ms" << std::endl;
+				std::cout << "Expand returned true!" << std::endl;
 			}
-			backTrack();
-			return;
+			return true;
 		}
 
 		if (m_debug)
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(250));
+			std::this_thread::sleep_for(std::chrono::milliseconds(Utils::DELAY_AMOUNT));
 			reaGridRedraw();
 		}
 	}
 
 	std::cout << "Failed to find a path to the goal!" << std::endl;
+	return false;
 }
 
 double GridManager::getOctileDist(sf::Vector2f t_p1, sf::Vector2f t_p2)
@@ -838,8 +879,8 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 		throw std::invalid_argument("received bad direction value");
 		break;
 	}
-	t_rectBoundary.push_back(corner1);
-	t_rectBoundary.push_back(corner2);
+	t_rectBoundary.emplace_back(corner1);
+	t_rectBoundary.emplace_back(corner2);
 
 	if (goalFound)
 	{
@@ -901,8 +942,8 @@ bool GridManager::getRectInDirection(std::vector<int>& t_rectBoundary, Neighbour
 				throw std::invalid_argument("received bad direction value");
 				break;
 			}
-			t_rectBoundary.push_back(corner3);
-			t_rectBoundary.push_back(corner4);
+			t_rectBoundary.emplace_back(corner3);
+			t_rectBoundary.emplace_back(corner4);
 		}
 	}
 	else if (m_grid.at(m_goalIndex)->getPrevious() == nullptr)
@@ -1031,8 +1072,8 @@ void GridManager::getRectInOpposite(std::vector<int>& t_rectBoundary, NeighbourI
 		throw std::invalid_argument("received bad direction value");
 		break;
 	}
-	t_rectBoundary.push_back(corner1);
-	t_rectBoundary.push_back(corner2);
+	t_rectBoundary.emplace_back(corner1);
+	t_rectBoundary.emplace_back(corner2);
 
 	if (corner1 < 0 && corner2 < 0)
 	{
@@ -1290,6 +1331,7 @@ bool GridManager::tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir)
 
 	//vector to store all gvals
 	std::vector<double> gvals;
+	gvals.reserve(3);
 
 	//indexes for different neighbours
 	int nextFsiIndex = getNeighbourIndex(nextFsiDir, t_point);
@@ -1309,23 +1351,23 @@ bool GridManager::tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir)
 		m_grid.at(nextFsiIndex)->getType() != GridTile::TileType::Obstacle &&
 		m_grid.at(nextFsiDiagIndex)->getType() != GridTile::TileType::Obstacle)
 	{
-		gvals.push_back(m_grid.at(nextFsiDiagIndex)->m_gval + Utils::DIAGONAL);
+		gvals.emplace_back(m_grid.at(nextFsiDiagIndex)->m_gval + Utils::DIAGONAL);
 	}
 	else
 	{
-		gvals.push_back(std::numeric_limits<int>::max());
+		gvals.emplace_back(std::numeric_limits<int>::max());
 	}
 	if (prevFsiIndex != -1 && prevFsiDiagIndex != -1 &&
 		m_grid.at(prevFsiIndex)->getType() != GridTile::TileType::Obstacle &&
 		m_grid.at(prevFsiDiagIndex)->getType() != GridTile::TileType::Obstacle)
 	{
-		gvals.push_back(m_grid.at(prevFsiDiagIndex)->m_gval + Utils::DIAGONAL);
+		gvals.emplace_back(m_grid.at(prevFsiDiagIndex)->m_gval + Utils::DIAGONAL);
 	}
 	else
 	{
-		gvals.push_back(std::numeric_limits<int>::max());
+		gvals.emplace_back(std::numeric_limits<int>::max());
 	}
-	gvals.push_back(m_grid.at(cardinalIndex)->m_gval + 1.0f);
+	gvals.emplace_back(m_grid.at(cardinalIndex)->m_gval + 1.0f);
 
 
 	//int lowestCost = std::min({ nextDiagCost, prevDiagCost, cardCost });
@@ -1355,7 +1397,10 @@ bool GridManager::tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir)
 	{
 		m_grid.at(t_point)->setPrevious(previous);
 		if (m_debug)
+		{
 			backTrackFrom(t_point);
+			reaGridRedraw();
+		}
 	}
 	return updated;
 }
@@ -1508,7 +1553,10 @@ bool GridManager::tryToUpdateSpecialCaseFsiPoint(int& t_point, NeighbourIndex& t
 	{
 		m_grid.at(t_point)->setPrevious(previous);
 		if (m_debug)
+		{
 			backTrackFrom(t_point);
+			reaGridRedraw();
+		}
 	}
 	return updated;
 }
@@ -1614,7 +1662,10 @@ bool GridManager::tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_di
 	{
 		m_grid.at(t_point)->setPrevious(previous);
 		if (m_debug)
+		{
 			backTrackFrom(t_point);
+			reaGridRedraw();
+		}
 	}
 	return updated;
 }
@@ -1659,24 +1710,16 @@ void GridManager::tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoin
 	{
 		m_grid.at(t_point)->setPrevious(previous);
 		if (m_debug)
+		{
 			backTrackFrom(t_point);
+			reaGridRedraw();
+		}
 	}
 }
 
 void GridManager::tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, double& t_octileP1, double& t_octileP2)
 {
-	//this here is an utter mess, fix to compare only to t_point.gval. Similar to the new way............
 	GridTile* previous = nullptr;
-
-	//if (t_point == 8 && t_p1 == 107)
-	//{
-	//	double test = static_cast<double>(m_grid.at(t_p1)->m_gval) + static_cast<double>(t_octileP1);
-	//	double test1 = static_cast<double>(m_grid.at(t_point)->m_gval);
-	//	if (test1 > test)
-	//	{
-	//		int stopRightHereCriminalScum = 1;
-	//	}
-	//}
 
 	if (t_p1 > -1 && t_point != t_p1 &&
 		m_grid.at(t_point)->m_gval > m_grid.at(t_p1)->m_gval + t_octileP1)
@@ -1692,6 +1735,11 @@ void GridManager::tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int&
 	if (previous)
 	{
 		m_grid.at(t_point)->setPrevious(previous);
+		if (m_debug)
+		{
+			backTrackFrom(t_point);
+			reaGridRedraw();
+		}
 	}
 }
 
@@ -1846,7 +1894,10 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 					}
 				}
 				if (m_debug)
+				{
 					backTrackFrom(p);
+					reaGridRedraw();
+				}
 			}
 			if (successor(northBoundary))
 			{
@@ -2005,7 +2056,10 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 					}
 				}
 				if (m_debug)
+				{
 					backTrackFrom(p);
+					reaGridRedraw();
+				}
 			}
 			if (successor(southBoundary))
 			{
@@ -2166,7 +2220,10 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 					}
 				}
 				if (m_debug)
+				{
 					backTrackFrom(p);
+					reaGridRedraw();
+				}
 			}
 			if (successor(westBoundary))
 			{
@@ -2327,7 +2384,10 @@ bool GridManager::processBoundaries(SearchNode* t_cbn, BoundaryNode& t_sideWall1
 					}
 				}
 				if (m_debug)
+				{
 					backTrackFrom(p);
+					reaGridRedraw();
+				}
 			}
 			if (successor(eastBoundary))
 			{
@@ -2573,8 +2633,16 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 		for (int i = 0; i < t_parentBoundary.m_fsi.size(); i++)
 		{
 			SearchNode* PN = new SearchNode(t_parentBoundary.m_fsi[i]);
-			m_searchNodes.push_back(PN);
-			m_openlist.push(PN);
+			try
+			{
+				m_searchNodes.push_back(PN);
+				m_openlist.push(PN);
+			}
+			catch (const std::exception&)
+			{
+				delete PN;
+				throw;
+			}
 		}
 	}
 	return false;
@@ -2738,7 +2806,7 @@ void GridManager::calcFSI(BoundaryNode& t_parentBoundary)
 		{
 			if (m_grid.at(index)->getType() != GridTile::TileType::Obstacle)
 			{
-				t_parentBoundary.m_fsi.at(fsiIndex).m_interval.push_back(index);
+				t_parentBoundary.m_fsi.at(fsiIndex).m_interval.emplace_back(index);
 			}
 			else
 			{
@@ -2760,20 +2828,20 @@ void GridManager::calcFSI(BoundaryNode& t_parentBoundary)
 		if (m_grid.at(index)->getType() != GridTile::TileType::Obstacle &&
 			m_grid.at(getNeighbourIndex(diagonalCheck2, index))->getType() != GridTile::TileType::Obstacle)
 		{
-			t_parentBoundary.m_fsi.at(fsiIndex).m_interval.push_back(index);
+			t_parentBoundary.m_fsi.at(fsiIndex).m_interval.emplace_back(index);
 		}
 	}
 	else if (m_grid.at(index)->getType() != GridTile::TileType::Obstacle)
 	{
 		if (fsiStarted)
 		{
-			t_parentBoundary.m_fsi.at(fsiIndex).m_interval.push_back(index);
+			t_parentBoundary.m_fsi.at(fsiIndex).m_interval.emplace_back(index);
 		}
 		else
 		{
 			t_parentBoundary.m_fsi.emplace_back(index, t_parentBoundary.m_dir);
 			fsiIndex++;
-			t_parentBoundary.m_fsi.at(fsiIndex).m_interval.push_back(index);
+			t_parentBoundary.m_fsi.at(fsiIndex).m_interval.emplace_back(index);
 		}
 	}
 }
@@ -2813,7 +2881,7 @@ std::vector<int> GridManager::calcBoundary(int& t_corner1, int& t_corner2, Neigh
 
 	while (index > -1 && index < MAX_TILES && index <= t_corner2/* + offset*/)
 	{
-		boundary.push_back(index);
+		boundary.emplace_back(index);
 		index += offset;
 	}
 
@@ -2883,8 +2951,8 @@ bool GridManager::getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourInde
 
 	getRectBoundaries(rectangle, t_boundaries);
 
-	t_rectPoints.push_back(rectangle[0]);
-	t_rectPoints.push_back(rectangle[rectangle.size() - 1]);
+	t_rectPoints.emplace_back(rectangle[0]);
+	t_rectPoints.emplace_back(rectangle[rectangle.size() - 1]);
 
 	return false;
 }
@@ -2927,4 +2995,175 @@ int GridManager::getCurrentSideLimit(NeighbourIndex& t_expandDir, int& t_origin,
 	}
 
 	return sideLimit;
+}
+
+bool GridManager::aStar()
+{
+	if (m_startIndex > -1 && m_goalIndex > -1)
+	{
+		std::priority_queue<GridTile*, std::vector<GridTile*>, TileComparer> pq;
+		for (int i = 0; i < m_grid.size(); i++)
+		{
+			if (nullptr != m_grid.at(i) && m_grid.at(i)->getType() != GridTile::TileType::Obstacle)
+			{
+				float estDist = thor::length(static_cast<sf::Vector2f>(m_grid.at(m_goalIndex)->getColRow() - m_grid.at(i)->getColRow()));
+				//estDist *= 1.1f;
+				m_grid.at(i)->setEstDist(estDist);
+
+				// init g[v] to infinity # dont YET know the distance to these nodes
+				m_grid.at(i)->setCurrDist(std::numeric_limits<int>::max());
+				m_grid.at(i)->setTotalDist(std::numeric_limits<int>::max());
+			}
+		}
+
+		// init g[s] to 0
+		m_grid.at(m_startIndex)->setCurrDist(0);
+		m_grid.at(m_startIndex)->setTotalDist(0);
+		// mark s
+		m_grid.at(m_startIndex)->setMarked(true);
+
+		// Add s to pq
+		GridTile* current;
+		pq.push(m_grid.at(m_startIndex));
+
+		// while the !pq.empty() && pq.top() != goal node
+		while (!pq.empty() && pq.top() != m_grid.at(m_goalIndex))
+		{
+			current = pq.top();
+			//pop from pq
+			pq.pop();
+			current->setVisited(true);
+
+			if (m_debug)
+				std::cout << "Visiting: " << current->getIndex() << std::endl;
+
+			//for each child node c of pq.top() - 8 neighbours
+			bool skipTopLeft = false, skipTopRight = false, skipBotLeft = false, skipBotRight = false;
+			for (int i = 0; i < 8; i++)
+			{
+				NeighbourIndex neighbour = static_cast<NeighbourIndex>(i);
+				int tileIndex = getNeighbourIndex(neighbour, current->getIndex());
+				if (tileIndex > -1 && m_grid.at(tileIndex)->getType() != GridTile::TileType::Obstacle)
+				{
+					if (static_cast<NeighbourIndex>(i) == NeighbourIndex::TOP_LEFT && skipTopLeft)
+					{
+						continue;
+					}
+					else if (static_cast<NeighbourIndex>(i) == NeighbourIndex::TOP_RIGHT && skipTopRight)
+					{
+						continue;
+					}
+					else if (static_cast<NeighbourIndex>(i) == NeighbourIndex::BOTTOM_LEFT && skipBotLeft)
+					{
+						continue;
+					}
+					else if (static_cast<NeighbourIndex>(i) == NeighbourIndex::BOTTOM_RIGHT && skipBotRight)
+					{
+						continue;
+					}
+
+					GridTile* child = m_grid.at(tileIndex);
+
+					//if child != previous(pq.top())
+					if (child != current->getPrevious()) {
+						//g(child) # g(c) is weight from current to child + distance of previous node
+						float dist;
+						switch (neighbour)
+						{
+						case NeighbourIndex::LEFT:
+						case NeighbourIndex::RIGHT:
+						case NeighbourIndex::BOTTOM:
+						case NeighbourIndex::TOP:
+							dist = 1.0f;
+							break;
+						case NeighbourIndex::TOP_LEFT:
+						case NeighbourIndex::TOP_RIGHT:
+						case NeighbourIndex::BOTTOM_LEFT:
+						case NeighbourIndex::BOTTOM_RIGHT:
+							dist = 1.414f;
+							break;
+						default:
+							break;
+						}
+
+						float childCurrDist = current->getCurrDist() + dist;//f(c)
+						//let total child dist = h(child) + distance so far
+						float totalChildDist = child->getEstDist() + childCurrDist;
+
+						if (totalChildDist < child->getTotalDist()) {
+							// set current distance
+							child->setCurrDist(childCurrDist);
+
+							//let f[c] = total distance
+							child->setTotalDist(totalChildDist);
+
+							// set previous pointer of child to pq.top()
+							child->setPrevious(current);
+						}//end if
+
+						if (!child->getMarked())
+						{
+							//mark child
+							child->setMarked(true);
+
+							//add child to pq
+							pq.push(child);
+						}//end if Marked check
+
+					}//end if we're not checking parent
+
+				}//end if index and TileType check
+				else if (tileIndex > -1)
+				{
+					if (static_cast<NeighbourIndex>(i) == NeighbourIndex::LEFT)
+					{
+						skipTopLeft = true;
+						skipBotLeft = true;
+					}
+					else if (static_cast<NeighbourIndex>(i) == NeighbourIndex::RIGHT)
+					{
+						skipTopRight = true;
+						skipBotRight = true;
+					}
+					else if (static_cast<NeighbourIndex>(i) == NeighbourIndex::TOP)
+					{
+						skipTopLeft = true;
+						skipTopRight = true;
+					}
+					else if (static_cast<NeighbourIndex>(i) == NeighbourIndex::BOTTOM)
+					{
+						skipBotLeft = true;
+						skipBotRight = true;
+					}
+				}
+
+			}//end for
+			if (m_debug)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(Utils::DELAY_AMOUNT));
+				gridRedraw();
+			}
+		}//end while
+
+		if (m_grid.at(m_goalIndex)->getPrevious() != nullptr)
+		{
+			return true;
+		}
+	}//end if
+	return false;
+}
+
+void GridManager::prePathfindReset()
+{
+	//Initialise
+	for (SearchNode* p : m_searchNodes)
+	{
+		delete p;
+	}
+	m_searchNodes.clear();
+
+	m_openlist = std::priority_queue<SearchNode*, std::vector<SearchNode*>, NodeComparer>();
+
+	m_lines.clear();
+	resetNonObstacles();
 }

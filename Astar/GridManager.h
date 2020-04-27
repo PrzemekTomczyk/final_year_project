@@ -8,6 +8,8 @@
 #include <vector>
 #include <functional>
 #include <Thor/Time.hpp>
+#include <chrono>
+#include <thread>
 
 class TileComparer
 {

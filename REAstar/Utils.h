@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 enum class NeighbourIndex
 {
@@ -15,6 +16,11 @@ enum class NeighbourIndex
 namespace Utils
 {
 	const static double DIAGONAL = std::sqrtf(2.0f);
+
+	const static std::string INSTRUCTIONS = "Mouse controls:\n\nPress LMB to place Goal\n\nPress RMB to place Start Tiles\n\nPress/hold MMB to place Obstacles\n\n\nKeyboard controls:\n\nPress ENTER to start search\n\t**START and GOAL required**\n\nPress SPACE to toggle between\nplacing obstacles and \nreseting tiles using MMB\n\nPress F1 to load Test Layout\n\nPress F2 to load Sandbox Layout\n\nPress F5 to turn debug ON/OFF\n\nPress R reset the grid";
+
+	static int DELAY_AMOUNT = 250;
+
 	static NeighbourIndex LEFT = NeighbourIndex::LEFT;
 	static NeighbourIndex RIGHT = NeighbourIndex::RIGHT;
 	static NeighbourIndex TOP = NeighbourIndex::TOP;

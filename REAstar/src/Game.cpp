@@ -158,7 +158,7 @@ void Game::setupGrid()
 		//setup tooltip text
 		m_tooltipText.setFont(m_font);
 		m_tooltipText.setFillColor(sf::Color::White);
-		m_tooltipText.setString("Mouse controls:\n\nPress LMB to place Goal\n\nPress RMB to place Start Tiles\n\nPress/hold MMB to place Obstacles\n\n\nKeyboard controls:\n\nPress SPACE to toggle between\nplacing obstacles and \nreseting tiles using MMB\n\nPress F1 to load Test Layout\n\nPress F2 to load Sandbox Layout\n\nPress R reset the grid");
+		m_tooltipText.setString(Utils::INSTRUCTIONS);
 
 		//take away 50 to make a window slightly smaller that fullscreen
 		int width = sf::VideoMode::getDesktopMode().width - 50;

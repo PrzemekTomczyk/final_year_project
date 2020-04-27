@@ -601,7 +601,8 @@ void GridManager::aStar(std::function<void(GridTile*)> f_visit)
 				}
 
 			}//end for
-			//tempRender();
+			tempRender();
+			std::this_thread::sleep_for(std::chrono::milliseconds(150));
 		}//end while
 
 		if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {

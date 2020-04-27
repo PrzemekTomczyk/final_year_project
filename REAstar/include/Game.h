@@ -9,9 +9,6 @@
 #include <sstream>
 #include <cstdlib>
 
-//#include "imgui/imgui.h"
-//#include "imguiSFML/imgui-SFML.h"
-
 #include <SFML/Graphics.hpp>
 
 #include "Thor/Vectors.hpp"
