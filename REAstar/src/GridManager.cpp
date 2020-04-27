@@ -36,9 +36,11 @@ GridManager::~GridManager()
 	m_searchNodes.shrink_to_fit();
 }
 
-void GridManager::update()
+void GridManager::update(const sf::Vector2f& t_textPos)
 {
 	handleInput();
+
+	updateText(t_textPos);
 
 	if (m_updateRequired && !m_middleBtn)
 	{
@@ -74,10 +76,20 @@ void GridManager::update()
 			{
 				auto end = std::chrono::high_resolution_clock::now();
 				auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-				std::cout << "Time taken to find goal: " << duration.count() << "micro-seconds" << std::endl;
+				std::cout << "Time taken to find goal: " << duration.count() << " micro-seconds" << std::endl;
+
+				if (m_useRea)
+				{
+					m_reaTimeTakenText.setString(Utils::REA_TIME_TAKEN_ALIGNMENT + std::to_string(duration.count()) + " micro-seconds");
+					m_reaDistText.setString(Utils::REA_DISTANCE_ALIGNMENT + std::to_string(backTrack()));
+				}
+				else if (!m_useRea)
+				{
+					m_aStarTimeTakenText.setString(Utils::ASTAR_TIME_TAKEN_ALIGNMENT + std::to_string(duration.count()) + " micro-seconds");
+					m_aStarDistText.setString(Utils::ASTAR_DISTANCE_ALIGNMENT + std::to_string(backTrack()));
+				}
 			}
 
-			backTrack();
 		}
 
 	}
@@ -90,6 +102,15 @@ void GridManager::update()
 void GridManager::render()
 {
 	m_window.draw(m_placeModeTxt);
+	m_window.draw(m_debugText);
+	m_window.draw(m_debugStateText);
+	m_window.draw(m_algText);
+	m_window.draw(m_algTypeText);
+	m_window.draw(m_reaTimeTakenText);
+	m_window.draw(m_aStarTimeTakenText);
+	m_window.draw(m_reaDistText);
+	m_window.draw(m_aStarDistText);
+
 	for (int i = 0; i < m_grid.size(); i++)
 	{
 		m_grid.at(i)->render(m_window);
@@ -116,7 +137,7 @@ void GridManager::reaGridRedraw()
 	for (int i = 0; i < m_lines.size(); i++)
 	{
 		m_window.draw(&m_lines[0], m_lines.size(), sf::Lines);
-		if (i > MAX_TILES * MAX_TILES)
+		if (i > MAX_TILES* MAX_TILES)
 		{
 			m_lines.clear();
 			std::cout << "Unexpected error during line render occured!" << std::endl;
@@ -137,6 +158,16 @@ void GridManager::reaGridRedraw()
 		{
 			loop = false;
 		}
+		if (!m_f5Pressed && sf::Keyboard::isKeyPressed(sf::Keyboard::F5))
+		{
+			m_f5Pressed = true;
+			loop = false;
+			m_debug = !m_debug;
+		}
+		else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::F5))
+		{
+			m_f5Pressed = false;
+		}
 	}
 }
 
@@ -145,6 +176,12 @@ void GridManager::gridRedraw()
 	for (int i = 0; i < m_grid.size(); i++)
 	{
 		m_grid.at(i)->render(m_window);
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
+		{
+			m_debug = false;
+			return;
+		}
 	}
 	m_window.display();
 }
@@ -487,16 +524,6 @@ int GridManager::getClickedTileIndex(sf::Vector2i t_mousePos)
 	return  col + (row * TILES_PER_ROW);
 }
 
-int GridManager::getStartIndex()
-{
-	return m_startIndex;
-}
-
-int GridManager::getGoalIndex()
-{
-	return m_goalIndex;
-}
-
 void GridManager::setToPath(int t_index)
 {
 	if (m_grid.at(t_index)->getType() != GridTile::TileType::Goal && m_grid.at(t_index)->getType() != GridTile::TileType::Start)
@@ -545,12 +572,13 @@ void GridManager::addLine(sf::Vector2f t_p1, sf::Vector2f t_p2, sf::Color t_colo
 	m_lines.emplace_back(t_p2, t_colour);
 }
 
-void GridManager::backTrack()
+float GridManager::backTrack()
 {
-	std::cout << "Path taken: ";
 	m_lines.clear();
 	if (m_grid.at(m_goalIndex)->getPrevious() != nullptr) {
 		GridTile* ptr = m_grid.at(m_goalIndex);
+		std::cout << "Path taken: ";
+		float pathDistance = 0.0f;
 
 		//add all nodes with previous to the path
 		while (nullptr != ptr->getPrevious())
@@ -564,17 +592,19 @@ void GridManager::backTrack()
 
 			addLine(ptr->getPos(), ptr->getPrevious()->getPos());
 
+			pathDistance += thor::length(static_cast<sf::Vector2f>(ptr->getColRow() - ptr->getPrevious()->getColRow()));
+
 			ptr = ptr->getPrevious();
 		}
 		std::cout << ptr->getIndex() << std::endl;
+		return pathDistance;
 	}
 	else
 	{
-		//reaGridRedraw();
-		//throw std::invalid_argument("goal's previous ptr not set!");
 		if (m_debug)
 			std::cout << "goal's previous ptr not set!" << std::endl;
 	}
+	return 0;
 }
 
 /// <summary>
@@ -616,13 +646,13 @@ void GridManager::setupRectCorners(std::vector<int>& t_rectCorners)
 	}
 }
 
-void GridManager::init(float t_textOffset)
+void GridManager::init(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize)
 {
 	//use height of the window to make squares as the right side of the screen is used for tooltip info
 	m_tileSize.y = static_cast<float>(m_window.getSize().y) / static_cast<float>(NO_OF_ROWS);
 	m_tileSize.x = m_tileSize.y;
 	m_grid.reserve(MAX_TILES);
-	m_searchNodes.reserve(MAX_TILES * MAX_TILES);
+	m_searchNodes.reserve(MAX_TILES);
 
 	for (int i = 0; i < NO_OF_ROWS; i++)
 	{
@@ -648,11 +678,8 @@ void GridManager::init(float t_textOffset)
 			}
 		}
 	}
-	m_placeModeTxt.setFont(m_font);
-	m_placeModeTxt.setString(m_placeString);
-	m_placeModeTxt.setCharacterSize(static_cast<int>(m_window.getSize().y / 31));
-	m_placeModeTxt.setPosition(t_textOffset - m_placeModeTxt.getGlobalBounds().width / 2.0f, 0);
-	m_placeModeTxt.setFillColor(sf::Color::Green);
+
+	initText(t_textOffset, t_textPos, t_charSize);
 
 	if (MAX_TILES == TEST_LAYOUT)
 	{
@@ -3166,4 +3193,85 @@ void GridManager::prePathfindReset()
 
 	m_lines.clear();
 	resetNonObstacles();
+}
+
+void GridManager::updateText(const sf::Vector2f& t_textPos)
+{
+	if (m_debug)
+	{
+		m_debugStateString = Utils::DEBUG_ON;
+		if (m_useRea)
+		{
+			m_debugStateString += Utils::DEBUG_REA;
+		}
+		else
+		{
+			m_debugStateString += Utils::DEBUG_ASTAR;
+		}
+		m_debugStateText.setString(m_debugStateString);
+		m_debugStateText.setFillColor(sf::Color::Red);
+		m_debugStateText.setPosition(t_textPos);
+	}
+	else
+	{
+		m_debugStateString = Utils::DEBUG_OFF;
+		m_debugStateText.setString(m_debugStateString);
+		m_debugStateText.setFillColor(sf::Color::Green);
+		m_debugStateText.setPosition(t_textPos);
+	}
+
+	if (m_useRea)
+	{
+		m_algTypeString = Utils::USE_REA;
+		m_algTypeText.setString(m_algTypeString);
+		m_algTypeText.setPosition(t_textPos);
+	}
+	else
+	{
+		m_algTypeString = Utils::USE_ASTAR;
+		m_algTypeText.setString(m_algTypeString);
+		m_algTypeText.setPosition(t_textPos);
+	}
+}
+
+void GridManager::initText(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize)
+{
+	m_algText.setFont(m_font);
+	m_algText.setCharacterSize(t_charSize);
+	m_algText.setPosition(t_textPos.x, 0.0f);
+
+	m_algTypeText.setFont(m_font);
+	m_algTypeText.setCharacterSize(t_charSize);
+	m_algTypeText.setPosition(t_textPos.x, 0.0f);
+	m_algTypeText.setFillColor(sf::Color::Green);
+
+	m_debugText.setFont(m_font);
+	m_debugText.setCharacterSize(t_charSize);
+	m_debugText.setPosition(t_textPos.x, 0.0f);
+
+	m_debugStateText.setFont(m_font);
+	m_debugStateText.setCharacterSize(t_charSize);
+	m_debugStateText.setPosition(t_textPos.x, 0.0f);
+
+	m_reaTimeTakenText.setFont(m_font);
+	m_reaTimeTakenText.setCharacterSize(t_charSize);
+	m_reaTimeTakenText.setPosition(t_textPos.x, 0.0f);
+
+	m_aStarTimeTakenText.setFont(m_font);
+	m_aStarTimeTakenText.setCharacterSize(t_charSize);
+	m_aStarTimeTakenText.setPosition(t_textPos.x, 0.0f);
+
+	m_reaDistText.setFont(m_font);
+	m_reaDistText.setCharacterSize(t_charSize);
+	m_reaDistText.setPosition(t_textPos.x, 0.0f);
+	
+	m_aStarDistText.setFont(m_font);
+	m_aStarDistText.setCharacterSize(t_charSize);
+	m_aStarDistText.setPosition(t_textPos.x, 0.0f);
+	
+	m_placeModeTxt.setFont(m_font);
+	m_placeModeTxt.setString(m_placeString);
+	m_placeModeTxt.setCharacterSize(static_cast<int>(m_window.getSize().y / 31));
+	m_placeModeTxt.setPosition(t_textOffset - m_placeModeTxt.getGlobalBounds().width / 2.0f, 0.0f);
+	m_placeModeTxt.setFillColor(sf::Color::Green);
 }

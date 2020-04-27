@@ -18,6 +18,12 @@ Game::Game() :
 		std::cout << "Error loading font!" << std::endl;
 	}
 
+	//setup tooltip text
+	m_tooltipText.setFont(m_font);
+	m_tooltipText.setFillColor(sf::Color::White);
+	m_tooltipText.setString(Utils::INSTRUCTIONS);
+
+
 	m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
 	setupGrid();
 }
@@ -29,8 +35,6 @@ Game::~Game()
 void Game::run()
 {
 	m_window.setActive(false);
-
-	//boost::thread t{ &Game::renderingThread, this };
 
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
@@ -45,11 +49,8 @@ void Game::run()
 			processEvents();
 			update(timePerFrame);
 		}
-		//imguiUpdate(timePerFrame);
-		//ImGui::SFML::Render(m_window);
 		render();
 	}
-	//t.join();
 }
 
 void Game::processEvents()
@@ -60,7 +61,6 @@ void Game::processEvents()
 	{
 		if (m_window.hasFocus())
 		{
-			//ImGui::SFML::ProcessEvent(event);
 			if (sf::Event::Resized == event.type)
 			{
 				sf::FloatRect visibleArea(0, 0, static_cast<float>(event.size.width), static_cast<float>(event.size.height));
@@ -105,8 +105,7 @@ void Game::update(sf::Time t_deltaTime)
 		m_loadLayout = false;
 	}
 
-
-	m_grid->update();
+	m_grid->update(m_tooltipText.getPosition());
 }
 
 void Game::render()
@@ -117,8 +116,6 @@ void Game::render()
 	m_window.draw(m_tooltipText);
 
 	m_grid->render();
-
-	//ImGui::SFML::Render(m_window);
 
 	m_window.display();
 }
@@ -155,11 +152,6 @@ void Game::setupGrid()
 {
 	if (m_grid)
 	{
-		//setup tooltip text
-		m_tooltipText.setFont(m_font);
-		m_tooltipText.setFillColor(sf::Color::White);
-		m_tooltipText.setString(Utils::INSTRUCTIONS);
-
 		//take away 50 to make a window slightly smaller that fullscreen
 		int width = sf::VideoMode::getDesktopMode().width - 50;
 		int height = sf::VideoMode::getDesktopMode().height - 50;
@@ -185,6 +177,7 @@ void Game::setupGrid()
 
 		//scale character size to be 1/62 of window height
 		m_tooltipText.setCharacterSize((int)(windowYSize / 62));
+
 		float outlineThiccness = thor::length(sf::Vector2f(m_tooltipText.getGlobalBounds().width, (float)windowYSize)) * 0.01f;
 		m_textBackground.setSize(sf::Vector2f(m_tooltipText.getGlobalBounds().width + outlineThiccness * 2, (float)windowYSize));
 
@@ -205,38 +198,6 @@ void Game::setupGrid()
 		m_textBackground.setOutlineThickness(-outlineThiccness);
 		m_textBackground.setPosition((float)windowXSize, 0);
 		m_tooltipText.setPosition(m_textBackground.getPosition().x + outlineThiccness, m_textBackground.getPosition().y + outlineThiccness);
-
-		m_grid->init(m_textBackground.getPosition().x + m_textBackground.getSize().x / 2.0f);
+		m_grid->init(m_textBackground.getPosition().x + m_textBackground.getSize().x / 2.0f, m_tooltipText.getPosition(), m_tooltipText.getCharacterSize());
 	}
 }
-
-//void Game::imguiUpdate(sf::Time t_deltaTime)
-//{
-//	ImGui::SFML::Update(m_window, t_deltaTime);
-//	ImGui::Begin("Sample window"); // begin window
-//
-//	sf::Color bgColor;
-//	float color[3] = { 0.f, 0.f, 0.f };
-//	char windowTitle[255] = "ImGui + SFML = <3";
-//
-//
-//	// Background color edit
-//	if (ImGui::ColorEdit3("Background color", color)) {
-//		// this code gets called if color value changes, so
-//		// the background color is upgraded automatically!
-//		bgColor.r = static_cast<sf::Uint8>(color[0] * 255.f);
-//		bgColor.g = static_cast<sf::Uint8>(color[1] * 255.f);
-//		bgColor.b = static_cast<sf::Uint8>(color[2] * 255.f);
-//	}
-//
-//	// Window title text edit
-//	ImGui::InputText("Window title", windowTitle, 255);
-//
-//	if (ImGui::Button("Update window title")) {
-//		// this code gets if user clicks on the button
-//		// yes, you could have written if(ImGui::InputText(...))
-//		// but I do this to show how buttons work :)
-//		m_window.setTitle(windowTitle);
-//	}
-//	ImGui::End(); // end window
-//}

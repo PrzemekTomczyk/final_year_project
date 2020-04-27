@@ -42,19 +42,12 @@ class GridManager
 public:
 	GridManager(sf::Font& t_font, sf::RenderWindow& t_window, int t_maxTiles, int t_noOfRows, int t_tilesPerRow);
 	~GridManager();
-	void update();
+	void update(const sf::Vector2f& t_textPos);
 	void render();
-	void reaGridRedraw();
-	void gridRedraw();
-	void init(float t_textOffset);
-	int getStartIndex();
-	int getGoalIndex();
-	void setToPath(int t_index);
-	bool reaAlgorithm();
-	bool aStar();
-	void prePathfindReset();
+	void init(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize);
 
 private:
+	void initText(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize);
 	void handleInput();
 	void handleKeyboard();
 	void handleMouse();
@@ -70,9 +63,17 @@ private:
 	void setTestLayout();
 	void addLine(sf::Vector2f t_p1, sf::Vector2f t_p2);
 	void addLine(sf::Vector2f t_p1, sf::Vector2f t_p2, sf::Color t_colour);
-	void backTrack();
+	float backTrack();
 	void backTrackFrom(int& t_point);
 	void setupRectCorners(std::vector<int>& t_rectCorners);
+
+	void reaGridRedraw();
+	void gridRedraw();
+	void setToPath(int t_index);
+	bool reaAlgorithm();
+	bool aStar();
+	void prePathfindReset();
+	void updateText(const sf::Vector2f& t_textPos);
 
 	bool successor(BoundaryNode& t_parentBoundary);
 	void setupFsiPoint(int& t_point, SearchNode& t_fsi);
@@ -133,6 +134,12 @@ private:
 	sf::Text m_algText;
 	std::string m_algString;
 	std::string m_algTypeString;
+
+	sf::Text m_reaTimeTakenText;
+	sf::Text m_aStarTimeTakenText;
+
+	sf::Text m_reaDistText;
+	sf::Text m_aStarDistText;
 
 	//consts
 	const int TEST_LAYOUT = 140;
