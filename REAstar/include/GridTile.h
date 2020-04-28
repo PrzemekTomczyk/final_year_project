@@ -57,14 +57,15 @@ public:
 	void setPrevious(GridTile* t_previous);
 	GridTile* getPrevious() const;
 	void printPreviousPath() const;
-	float getX() const;
-	float getY() const;
 	int getIndex() const;
-	float getDiagonal() const;
 
-	sf::Vector2f getPos();
-	sf::Vector2i getColRow();
-	TileType getType();
+	sf::Vector2f& getPos();
+	sf::Vector2i& getColRow();
+	int& getCol();
+	int& getRow();
+
+
+	TileType& getType();
 
 private:
 	void setColour();
@@ -72,6 +73,8 @@ private:
 	TileType m_type;
 	sf::Vector2f m_pos;
 	sf::Vector2i m_colRow;
+	int m_column;
+	int m_row;
 	int m_rgb[3]{ 255, 255, 255};
 
 	sf::RectangleShape m_tile;
@@ -84,10 +87,6 @@ private:
 	float m_totalDist;
 	
 	GridTile* m_previous;
-
-	sf::Font& m_font;
-
-	sf::Text m_text;
 
 public:
 	ReaMode m_mode;

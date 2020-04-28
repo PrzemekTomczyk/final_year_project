@@ -1,17 +1,13 @@
 #pragma once
 #include <vector>
-#include <string>
-#include "Utils.h"
 #include "SearchNode.h"
 #include "GridTile.h"
 
-//class RectNode;
 class BoundaryNode
 {
 public:
 	BoundaryNode();
-	BoundaryNode(NeighbourIndex t_dir/*, RectNode* t_parent*/);
-	//BoundaryNode(std::vector<int>& t_boundary, NeighbourIndex t_dir/*, RectNode* t_parent*/);
+	BoundaryNode(NeighbourIndex t_dir);
 	BoundaryNode(std::vector<int>& t_boundary, NeighbourIndex t_dir);
 
 	//private:
@@ -21,6 +17,5 @@ public:
 
 	NeighbourIndex m_dir;
 	float m_minfval;
-	//RectNode* m_parentRect;
 	GridTile* m_previous = nullptr;
 };

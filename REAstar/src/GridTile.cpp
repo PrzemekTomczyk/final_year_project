@@ -5,8 +5,7 @@ GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, sf::Fon
 	m_pos(t_pos),
 	m_type(TileType::None),
 	m_index(t_index),
-	m_previous(t_previous),
-	m_font(t_font)
+	m_previous(t_previous)
 {
 	m_marked = false;
 	m_visited = false;
@@ -25,10 +24,11 @@ GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, sf::Fon
 	int y = static_cast<int>(m_pos.y / (m_tile.getSize().y / 2) - adjustY);
 	m_colRow = sf::Vector2i(x, y);
 
-	m_text.setFont(m_font);
-	m_text.setCharacterSize(12);
-	m_text.setFillColor(sf::Color::Black);
+	m_column = x;
+	m_row = y;
+
 	m_mode = ReaMode::None;
+	setColour();
 }
 
 GridTile::~GridTile()
@@ -40,14 +40,6 @@ void GridTile::render(sf::RenderWindow& t_window)
 {
 	setColour();
 	t_window.draw(m_tile);
-
-	//std::stringstream stream;
-	//std::string str;
-	//stream << "C: " << std::fixed << std::setprecision(2) << (m_currDist) << "\n" << "E: " << std::fixed << std::setprecision(2) << m_estDist << "\n" << "T: " << std::fixed << std::setprecision(2) << (m_totalDist) << "\n" << "I: " << m_index;
-	//str = stream.str();
-	//m_text.setPosition(m_pos - m_tile.getSize() / 2.0f);
-	//m_text.setString(str);
-	//t_window.draw(m_text);
 }
 
 void GridTile::setToObstacle()
@@ -151,7 +143,10 @@ void GridTile::setTotalDist(float t_total)
 
 void GridTile::setPrevious(GridTile* t_previous)
 {
-	m_previous = t_previous;
+	if (t_previous != this)
+	{
+		m_previous = t_previous;
+	}
 }
 
 GridTile* GridTile::getPrevious() const
@@ -169,27 +164,12 @@ void GridTile::printPreviousPath() const
 	}
 }
 
-float GridTile::getX() const
-{
-	return m_pos.x - m_tile.getSize().x;
-}
-
-float GridTile::getY() const
-{
-	return m_pos.y - m_tile.getSize().y;
-}
-
 int GridTile::getIndex() const
 {
 	return m_index;
 }
 
-float GridTile::getDiagonal() const
-{
-	return thor::squaredLength(m_tile.getSize());
-}
-
-sf::Vector2f GridTile::getPos()
+sf::Vector2f& GridTile::getPos()
 {
 	return m_pos;
 }
@@ -198,12 +178,22 @@ sf::Vector2f GridTile::getPos()
 /// Gets a vector holding this tile's column(x) and row(y)
 /// </summary>
 /// <returns>Vector2i holding row and col</returns>
-sf::Vector2i GridTile::getColRow()
+sf::Vector2i& GridTile::getColRow()
 {
 	return m_colRow;
 }
 
-GridTile::TileType GridTile::getType()
+int& GridTile::getCol()
+{
+	return m_column;
+}
+
+int& GridTile::getRow()
+{
+	return m_row;
+}
+
+GridTile::TileType& GridTile::getType()
 {
 	return m_type;
 }

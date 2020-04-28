@@ -35,7 +35,6 @@ public:
 	}
 };
 
-class RectNode;
 class BoundaryNode;
 class GridManager
 {
@@ -90,9 +89,9 @@ private:
 	bool tryToUpdateFsiPoint(int& t_point, NeighbourIndex& t_dir);
 	bool tryToUpdateSpecialCaseFsiPoint(int& t_point, NeighbourIndex& t_dir, bool t_startPoint);
 	bool tryToUpdateDiagonalFsiPoint(int& t_point, NeighbourIndex& t_dir, bool t_startPoint);
-	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, double& t_cardinalLen, double& t_diagLen, SearchNode* t_cbn, NeighbourIndex& t_boundaryDir, std::vector<int>& t_rectPoints);
+	void tryToUpdateSideBoundaryPoint(int& t_point, int& t_cardinalPoint, int& t_diagonalPoint, double& t_cardinalLen, double& t_diagLen, SearchNode* t_cbn, NeighbourIndex& t_boundaryDir);
 	void tryToUpdateOppositeBoundaryPoint(int& t_point, int& t_p1, int& t_p2, double& t_octileP1, double& t_octileP2);
-	bool processBoundaries(SearchNode* t_cbn, BoundaryNode& t_wall1, BoundaryNode& t_wall2, BoundaryNode& t_wall3, std::vector<int>& t_rectPoints);
+	bool processBoundaries(SearchNode* t_cbn, BoundaryNode& t_wall1, BoundaryNode& t_wall2, BoundaryNode& t_wall3);
 	bool fsiSpecialCasePoint(int& t_point, BoundaryNode& t_boundary);
 	bool checkIfWithinRect(int& t_point, int& t_topLeft, int& t_botRight);
 
@@ -100,10 +99,10 @@ private:
 	bool expand(SearchNode* t_cbn);
 	bool insertS();
 	void getRectBoundaries(std::vector<int>& t_rectBoundary, std::vector<BoundaryNode>& t_boundaries);
-	std::vector<int> calcBoundary(int& t_corner1, int& t_corner2, NeighbourIndex& t_dir);
+	void calcBoundary(int& t_corner1, int& t_corner2, NeighbourIndex& t_dir, std::vector<int>& t_boundaryContainer);
 	bool isValidBoundary(int& t_boundary, NeighbourIndex& t_directionOfBoundary);
 	bool getStartRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin);
-	bool getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin, std::vector<int>& t_fsiInterval, std::vector<int>& t_rectPoints);
+	bool getRect(std::vector<BoundaryNode>& t_boundaries, NeighbourIndex& t_dir, int& t_origin, std::vector<int>& t_fsiInterval);
 	int getCurrentSideLimit(NeighbourIndex& t_expandDir, int& t_origin, std::vector<int>& t_interval, NeighbourIndex& t_sideDirection);
 
 	//rea* open list
@@ -111,6 +110,8 @@ private:
 	std::vector<SearchNode*> m_searchNodes;
 	bool m_useRea = true;
 	bool m_debug = false;
+	std::vector<int> m_tempRect;
+	std::vector<BoundaryNode> m_tempBoundaries;
 
 	//vectors
 	std::vector<GridTile*> m_grid;

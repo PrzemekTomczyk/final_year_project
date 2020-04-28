@@ -39,13 +39,13 @@ public:
 
 private:
 	const int TEST_TILE_AMOUNT = 140;
-	const int SANDBOX_TILE_AMOUNT = 10000;
+	const int SANDBOX_TILE_AMOUNT = 40000;
 
 	const int TEST_LAYOUT_TILES_PER_ROW = 10;
 	const int TEST_LAYOUT_ROWS = 14;
 
-	const int SANDBOX_LAYOUT_TILES_PER_ROW = 100;
-	const int SANDBOX_LAYOUT_ROWS = 100;
+	const int SANDBOX_LAYOUT_TILES_PER_ROW = 200;
+	const int SANDBOX_LAYOUT_ROWS = 200;
 
 	// functions
 	void processEvents();
