@@ -14,8 +14,8 @@ GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, sf::Fon
 	m_tile.setSize(t_size);
 	m_tile.setOrigin(t_size.x / 2.0f, t_size.y / 2.0f);
 	m_tile.setPosition(m_pos);
-	m_tile.setOutlineColor(sf::Color::Black);
-	m_tile.setOutlineThickness(-1.0f);
+	//m_tile.setOutlineColor(sf::Color::Black);
+	//m_tile.setOutlineThickness(-1.0f);
 
 	int adjustX = static_cast<int>((m_pos.x / m_tile.getSize().x) + 1);
 	int adjustY = static_cast<int>((m_pos.y / m_tile.getSize().y) + 1);
@@ -38,32 +38,40 @@ GridTile::~GridTile()
 
 void GridTile::render(sf::RenderWindow& t_window)
 {
-	setColour();
+	if (m_typeChanged)
+	{
+		setColour();
+	}
 	t_window.draw(m_tile);
 }
 
 void GridTile::setToObstacle()
 {
+	m_typeChanged = true;
 	m_type = TileType::Obstacle;
 }
 
 void GridTile::setToStart()
 {
+	m_typeChanged = true;
 	m_type = TileType::Start;
 }
 
 void GridTile::setToGoal()
 {
+	m_typeChanged = true;
 	m_type = TileType::Goal;
 }
 
 void GridTile::setToPath()
 {
+	m_typeChanged = true;
 	m_type = TileType::Path;
 }
 
 void GridTile::setToCorner()
 {
+	m_typeChanged = true;
 	if (m_type == TileType::None)
 	{
 		m_type = TileType::Corner;
@@ -72,6 +80,7 @@ void GridTile::setToCorner()
 
 void GridTile::reset()
 {
+	m_typeChanged = true;
 	setMarked(false);
 	setPrevious(nullptr);
 	setVisited(false);
@@ -112,6 +121,7 @@ void GridTile::setVisited(bool t_visited)
 {
 	if (t_visited && m_type != TileType::Goal && m_type != TileType::Start && m_type != TileType::Corner)
 	{
+		m_typeChanged = true;
 		m_type = TileType::Visited;
 	}
 	m_visited = t_visited;
@@ -121,6 +131,7 @@ void GridTile::setMarked(bool t_marked)
 {
 	if (t_marked && m_type != TileType::Goal && m_type != TileType::Start && m_type != TileType::Corner)
 	{
+		m_typeChanged = true;
 		m_type = TileType::Marked;
 	}
 	m_marked = t_marked;
@@ -246,4 +257,5 @@ void GridTile::setColour()
 		break;
 	}
 	m_tile.setFillColor(sf::Color(m_rgb[0], m_rgb[1], m_rgb[2]));
+	m_typeChanged = false;
 }

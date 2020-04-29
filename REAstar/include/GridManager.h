@@ -44,6 +44,7 @@ public:
 	void update(const sf::Vector2f& t_textPos);
 	void render();
 	void init(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize);
+	bool getFullRender() const;
 
 private:
 	void initText(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize);
@@ -110,8 +111,11 @@ private:
 	std::vector<SearchNode*> m_searchNodes;
 	bool m_useRea = true;
 	bool m_debug = false;
+	bool m_fullRender = false;
 	std::vector<int> m_tempRect;
 	std::vector<BoundaryNode> m_tempBoundaries;
+
+	std::vector<int> m_tilesToRender;
 
 	//vectors
 	std::vector<GridTile*> m_grid;

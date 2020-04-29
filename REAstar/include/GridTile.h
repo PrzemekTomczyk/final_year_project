@@ -69,6 +69,7 @@ public:
 
 private:
 	void setColour();
+	bool m_typeChanged = false;
 
 	TileType m_type;
 	sf::Vector2f m_pos;
@@ -88,6 +89,7 @@ private:
 	
 	GridTile* m_previous;
 
+	//rea specific variables (left public for ease of access)
 public:
 	ReaMode m_mode;
 	double m_gval;

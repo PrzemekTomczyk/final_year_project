@@ -91,6 +91,7 @@
     <ClCompile Include="src\GridManager.cpp" />
     <ClCompile Include="src\GridTile.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\RenderGrid.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
@@ -100,6 +101,7 @@
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\GridManager.h" />
     <ClInclude Include="include\GridTile.h" />
+    <ClInclude Include="include\RenderGrid.h" />
     <ClInclude Include="include\stdafx.h" />
     <ClInclude Include="BoundaryNode.h" />
     <ClInclude Include="RectNode.h" />
