@@ -643,17 +643,21 @@ void GridManager::setMedLayout()
 	{
 		m_grid[i]->setToObstacle();
 	}
-	//for (int i = 10 * Utils::MED_SANDBOX_LAYOUT_TILES_PER_ROW; i < Utils::MED_SANDBOX_TILE_AMOUNT; i += 10 * Utils::MED_SANDBOX_LAYOUT_TILES_PER_ROW)
-	//{
-	//	for (int j = i; j < (i + Utils::MED_SANDBOX_LAYOUT_TILES_PER_ROW); j++)
-	//	{
-	//		m_grid[j]->setToObstacle();
-	//	}
-	//}
+
+	for (int i = 9; i < Utils::MED_SANDBOX_LAYOUT_ROWS; i+= 10)
+	{
+		int randNum = rand() % (Utils::MED_SANDBOX_LAYOUT_ROWS + 1);
+		int randTile = i + (Utils::MED_SANDBOX_LAYOUT_ROWS * randNum);
+		m_grid[randTile]->reset();
+	}
 }
 
 void GridManager::setLargeLayout()
 {
+	for (int i = 249; i < Utils::LARGE_SANDBOX_TILE_AMOUNT; i += 250)
+	{
+		m_grid[i]->setToObstacle();
+	}
 }
 
 /// <summary>

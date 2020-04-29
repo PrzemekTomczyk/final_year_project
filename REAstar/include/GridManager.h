@@ -43,10 +43,6 @@ public:
 	void update(const sf::Vector2f& t_textPos);
 	void render();
 	void init(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize);
-	std::vector<sf::Vertex>& getLines();
-	std::vector<int>& getPath();
-	int getStart();
-	int getGoal();
 
 private:
 	void initText(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize);
