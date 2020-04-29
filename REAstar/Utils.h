@@ -33,6 +33,23 @@ namespace Utils
 	const static std::string REA_DISTANCE_ALIGNMENT = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 	const static std::string ASTAR_DISTANCE_ALIGNMENT = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 
+	const static int TEST_TILE_AMOUNT = 140;
+	const static int SMALL_SANDBOX_TILE_AMOUNT = 10000;
+	const static int MED_SANDBOX_TILE_AMOUNT = 250000;
+	const static int LARGE_SANDBOX_TILE_AMOUNT = 1000000;
+
+	const static int TEST_LAYOUT_TILES_PER_ROW = 10;
+	const static int TEST_LAYOUT_ROWS = 14;
+
+	const static int SMALL_SANDBOX_LAYOUT_TILES_PER_ROW = 100;
+	const static int SMALL_SANDBOX_LAYOUT_ROWS = 100;
+
+	const static int MED_SANDBOX_LAYOUT_TILES_PER_ROW = 500;
+	const static int MED_SANDBOX_LAYOUT_ROWS = 500;
+
+	const static int LARGE_SANDBOX_LAYOUT_TILES_PER_ROW = 1000;
+	const static int LARGE_SANDBOX_LAYOUT_ROWS = 1000;
+
 	static int DELAY_AMOUNT = 250;
 
 	static NeighbourIndex LEFT = NeighbourIndex::LEFT;

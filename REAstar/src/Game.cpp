@@ -23,8 +23,7 @@ Game::Game() :
 	m_tooltipText.setFillColor(sf::Color::White);
 	m_tooltipText.setString(Utils::INSTRUCTIONS);
 
-
-	m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
+	m_grid = new GridManager(m_font, m_window, Utils::TEST_TILE_AMOUNT, Utils::TEST_LAYOUT_ROWS, Utils::TEST_LAYOUT_TILES_PER_ROW);
 	setupGrid();
 }
 
@@ -56,16 +55,10 @@ void Game::run()
 void Game::processEvents()
 {
 	sf::Event event;
-	processScreenEvents();
 	while (m_window.pollEvent(event))
 	{
 		if (m_window.hasFocus())
 		{
-			if (sf::Event::Resized == event.type)
-			{
-				sf::FloatRect visibleArea(0, 0, static_cast<float>(event.size.width), static_cast<float>(event.size.height));
-				m_window.setView(sf::View(visibleArea));
-			}
 			if (sf::Event::Closed == event.type) // window message
 			{
 				m_window.close();
@@ -96,11 +89,23 @@ void Game::update(sf::Time t_deltaTime)
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::F2))
 		{
 			m_loadLayout = true;
-			m_layout = GridLayout::SANDBOX;
+			m_layout = GridLayout::SMALL;
+			initLayout();
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::F3))
+		{
+			m_loadLayout = true;
+			m_layout = GridLayout::MEDIUM;
+			initLayout();
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::F4))
+		{
+			m_loadLayout = true;
+			m_layout = GridLayout::LARGE;
 			initLayout();
 		}
 	}
-	else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::F1) && !sf::Keyboard::isKeyPressed(sf::Keyboard::F2))
+	else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::F1) && !sf::Keyboard::isKeyPressed(sf::Keyboard::F2) && !sf::Keyboard::isKeyPressed(sf::Keyboard::F3) && !sf::Keyboard::isKeyPressed(sf::Keyboard::F4))
 	{
 		m_loadLayout = false;
 	}
@@ -110,7 +115,14 @@ void Game::update(sf::Time t_deltaTime)
 
 void Game::render()
 {
-	m_window.clear(sf::Color::Black);
+	if (m_layout != GridLayout::LARGE)
+	{
+		m_window.clear(sf::Color::Black);
+	}
+	else
+	{
+		m_window.clear(sf::Color(150,150,150,255));
+	}
 
 	m_window.draw(m_textBackground);
 	m_window.draw(m_tooltipText);
@@ -118,10 +130,6 @@ void Game::render()
 	m_grid->render();
 
 	m_window.display();
-}
-
-void Game::processScreenEvents()
-{
 }
 
 void Game::initLayout()
@@ -134,14 +142,20 @@ void Game::initLayout()
 	switch (m_layout)
 	{
 	case GridLayout::TEST:
-		m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
+		m_grid = new GridManager(m_font, m_window, Utils::TEST_TILE_AMOUNT, Utils::TEST_LAYOUT_ROWS, Utils::TEST_LAYOUT_TILES_PER_ROW);
 		break;
-	case GridLayout::SANDBOX:
-		m_grid = new GridManager(m_font, m_window, SANDBOX_TILE_AMOUNT, SANDBOX_LAYOUT_TILES_PER_ROW, SANDBOX_LAYOUT_ROWS);
+	case GridLayout::SMALL:
+		m_grid = new GridManager(m_font, m_window, Utils::SMALL_SANDBOX_TILE_AMOUNT, Utils::SMALL_SANDBOX_LAYOUT_TILES_PER_ROW, Utils::SMALL_SANDBOX_LAYOUT_ROWS);
+		break;
+	case GridLayout::MEDIUM:
+		m_grid = new GridManager(m_font, m_window, Utils::MED_SANDBOX_TILE_AMOUNT, Utils::MED_SANDBOX_LAYOUT_TILES_PER_ROW, Utils::MED_SANDBOX_LAYOUT_ROWS);
+		break;
+	case GridLayout::LARGE:
+		m_grid = new GridManager(m_font, m_window, Utils::LARGE_SANDBOX_TILE_AMOUNT, Utils::LARGE_SANDBOX_LAYOUT_TILES_PER_ROW, Utils::LARGE_SANDBOX_LAYOUT_ROWS);
 		break;
 	default:
 		//create test layout by default
-		m_grid = new GridManager(m_font, m_window, TEST_TILE_AMOUNT, TEST_LAYOUT_ROWS, TEST_LAYOUT_TILES_PER_ROW);
+		m_grid = new GridManager(m_font, m_window, Utils::TEST_TILE_AMOUNT, Utils::TEST_LAYOUT_ROWS, Utils::TEST_LAYOUT_TILES_PER_ROW);
 		break;
 	}
 
@@ -162,14 +176,24 @@ void Game::setupGrid()
 		switch (m_layout)
 		{
 		case GridLayout::TEST:
-			windowYSize = TEST_LAYOUT_ROWS * (unsigned)std::ceil(height / TEST_LAYOUT_ROWS);
-			windowXSize = (windowYSize / TEST_LAYOUT_ROWS) * TEST_LAYOUT_TILES_PER_ROW;
+			windowYSize = Utils::TEST_LAYOUT_ROWS * (unsigned)std::ceil(height / Utils::TEST_LAYOUT_ROWS);
+			windowXSize = (windowYSize / Utils::TEST_LAYOUT_ROWS) * Utils::TEST_LAYOUT_TILES_PER_ROW;
 			windowTitle = "REA* Visualisation - Test Layout";
 			break;
-		case GridLayout::SANDBOX:
-			windowYSize = SANDBOX_LAYOUT_ROWS * (unsigned)std::ceil(height / SANDBOX_LAYOUT_ROWS);
-			windowXSize = (windowYSize / SANDBOX_LAYOUT_ROWS) * SANDBOX_LAYOUT_TILES_PER_ROW;
-			windowTitle = "REA* Visualisation - Sandbox Layout";
+		case GridLayout::SMALL:
+			windowYSize = Utils::SMALL_SANDBOX_LAYOUT_ROWS * (unsigned)std::ceil(height / Utils::SMALL_SANDBOX_LAYOUT_ROWS);
+			windowXSize = (windowYSize / Utils::SMALL_SANDBOX_LAYOUT_ROWS) * Utils::SMALL_SANDBOX_LAYOUT_TILES_PER_ROW;
+			windowTitle = "REA* Visualisation - Small Layout";
+			break;
+		case GridLayout::MEDIUM:
+			windowYSize = Utils::MED_SANDBOX_LAYOUT_ROWS * (unsigned)std::ceil(height / Utils::MED_SANDBOX_LAYOUT_ROWS);
+			windowXSize = (windowYSize / Utils::MED_SANDBOX_LAYOUT_ROWS) * Utils::MED_SANDBOX_LAYOUT_TILES_PER_ROW;
+			windowTitle = "REA* Visualisation - Medium Layout";
+			break;
+		case GridLayout::LARGE:
+			windowYSize = Utils::LARGE_SANDBOX_LAYOUT_ROWS * (unsigned)std::ceil(height / Utils::LARGE_SANDBOX_LAYOUT_ROWS);
+			windowXSize = (windowYSize / Utils::LARGE_SANDBOX_LAYOUT_ROWS) * Utils::LARGE_SANDBOX_LAYOUT_TILES_PER_ROW;
+			windowTitle = "REA* Visualisation - Large Layout";
 			break;
 		default:
 			break;
@@ -189,6 +213,8 @@ void Game::setupGrid()
 		else
 		{
 			m_window.setSize(sf::Vector2u(windowXSize + (unsigned int)m_tooltipText.getGlobalBounds().width + (unsigned int)outlineThiccness * 2, windowYSize));
+			sf::FloatRect visibleArea(0, 0, static_cast<float>(m_window.getSize().x), static_cast<float>(m_window.getSize().y));
+			m_window.setView(sf::View(visibleArea));
 		}
 
 		m_window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - m_window.getSize().x / 2, 0));

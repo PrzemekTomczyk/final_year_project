@@ -8,22 +8,20 @@
 #include <vector>
 #include <sstream>
 #include <cstdlib>
+#include <array>
 
 #include <SFML/Graphics.hpp>
 
 #include "Thor/Vectors.hpp"
-
-#include "boost/thread.hpp"
-#include "boost/thread/scoped_thread.hpp"
-#include "boost/thread/mutex.hpp"
-#include "boost/thread/lock_types.hpp"
 
 #include "GridManager.h"
 
 enum class GridLayout
 {
 	TEST,
-	SANDBOX
+	SMALL,
+	MEDIUM,
+	LARGE
 };
 
 class Game
@@ -38,20 +36,11 @@ public:
 	void run();
 
 private:
-	const int TEST_TILE_AMOUNT = 140;
-	const int SANDBOX_TILE_AMOUNT = 1000000;
-
-	const int TEST_LAYOUT_TILES_PER_ROW = 10;
-	const int TEST_LAYOUT_ROWS = 14;
-
-	const int SANDBOX_LAYOUT_TILES_PER_ROW = 1000;
-	const int SANDBOX_LAYOUT_ROWS = 1000;
 
 	// functions
 	void processEvents();
 	void update(sf::Time t_deltaTime);
 	void render();
-	void processScreenEvents();
 	void setupGrid();
 
 	void initLayout();

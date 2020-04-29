@@ -12,7 +12,6 @@
 #include <chrono>
 #include <thread>
 #include "BoundaryNode.h"
-#include "RectNode.h"
 #include "Utils.h"
 #include "SearchNode.h"
 #include <chrono> 
@@ -44,7 +43,10 @@ public:
 	void update(const sf::Vector2f& t_textPos);
 	void render();
 	void init(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize);
-	bool getFullRender() const;
+	std::vector<sf::Vertex>& getLines();
+	std::vector<int>& getPath();
+	int getStart();
+	int getGoal();
 
 private:
 	void initText(float t_textOffset, const sf::Vector2f& t_textPos, int t_charSize);
@@ -61,6 +63,9 @@ private:
 	void checkIfStartRemoved(int t_tileClicked);
 	int getClickedTileIndex(sf::Vector2i t_mousePos);
 	void setTestLayout();
+	void setSmallLayout();
+	void setMedLayout();
+	void setLargeLayout();
 	void addLine(sf::Vector2f t_p1, sf::Vector2f t_p2);
 	void addLine(sf::Vector2f t_p1, sf::Vector2f t_p2, sf::Color t_colour);
 	float backTrack();
@@ -111,15 +116,13 @@ private:
 	std::vector<SearchNode*> m_searchNodes;
 	bool m_useRea = true;
 	bool m_debug = false;
-	bool m_fullRender = false;
 	std::vector<int> m_tempRect;
 	std::vector<BoundaryNode> m_tempBoundaries;
-
-	std::vector<int> m_tilesToRender;
 
 	//vectors
 	std::vector<GridTile*> m_grid;
 	sf::Vector2f m_tileSize;
+	std::vector<int> m_pathPoints;
 
 	//references
 	sf::Font& m_font;
@@ -147,7 +150,6 @@ private:
 	sf::Text m_aStarDistText;
 
 	//consts
-	const int TEST_LAYOUT = 140;
 	const int MAX_TILES;
 	const int NO_OF_ROWS;
 	const int TILES_PER_ROW;

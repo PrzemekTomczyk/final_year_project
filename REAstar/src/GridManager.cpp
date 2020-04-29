@@ -74,7 +74,7 @@ void GridManager::update(const sf::Vector2f& t_textPos)
 		{
 			std::cout << "REA*" << std::endl;
 			start = std::chrono::high_resolution_clock::now();
-	
+
 			pathFound = reaAlgorithm();
 			end = std::chrono::high_resolution_clock::now();
 		}
@@ -86,12 +86,11 @@ void GridManager::update(const sf::Vector2f& t_textPos)
 			end = std::chrono::high_resolution_clock::now();
 		}
 
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 		if (pathFound)
 		{
-			m_fullRender = true;
 			if (!m_debug)
 			{
-				auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 				std::cout << "Time taken to find goal: " << duration.count() << " micro-seconds" << std::endl;
 
 				if (m_useRea)
@@ -119,6 +118,10 @@ void GridManager::update(const sf::Vector2f& t_textPos)
 				}
 			}
 		}
+		else
+		{
+			std::cout << "Failed to find path in " + std::to_string(duration.count()) + " micro-seconds" << std::endl;
+		}
 
 	}
 	else if (m_startIndex == -1 || m_goalIndex == -1 && !m_lines.empty())
@@ -139,7 +142,7 @@ void GridManager::render()
 	m_window.draw(m_reaDistText);
 	m_window.draw(m_aStarDistText);
 
-	if (m_grid.size() == TEST_LAYOUT)
+	if (m_grid.size() < Utils::LARGE_SANDBOX_TILE_AMOUNT)
 	{
 		for (int i = 0; i < m_grid.size(); i++)
 		{
@@ -148,11 +151,13 @@ void GridManager::render()
 	}
 	else
 	{
-		//for (auto& index : m_tilesToRender)
-		//{
-		//	m_grid.at(index)->render(m_window);
-		//}
-
+		for (int i = 0; i < m_grid.size(); i++)
+		{
+			if (m_grid[i]->getType() == GridTile::TileType::Obstacle)
+			{
+				m_grid[i]->render(m_window);
+			}
+		}
 		if (m_goalIndex > -1 && m_goalIndex < MAX_TILES)
 		{
 			m_grid[m_goalIndex]->render(m_window);
@@ -432,7 +437,6 @@ void GridManager::handleMiddleClick(sf::Vector2i t_mousePos)
 			m_goalIndex = -1;
 		}
 		m_grid[tileIndex]->setToObstacle();
-		m_tilesToRender.push_back(tileIndex);
 		m_changedGrid = true;
 	}
 }
@@ -446,24 +450,31 @@ void GridManager::resetGrid()
 	{
 		m_grid[i]->reset();
 	}
-	if (MAX_TILES == TEST_LAYOUT)
+	if (MAX_TILES == Utils::TEST_TILE_AMOUNT)
 	{
 		setTestLayout();
+	}
+	else if (MAX_TILES == Utils::SMALL_SANDBOX_TILE_AMOUNT)
+	{
+		setSmallLayout();
+	}
+	else if (MAX_TILES == Utils::MED_SANDBOX_TILE_AMOUNT)
+	{
+		setMedLayout();
+	}
+	else if (MAX_TILES == Utils::LARGE_SANDBOX_TILE_AMOUNT)
+	{
+		setLargeLayout();
 	}
 }
 
 void GridManager::resetNonObstacles()
 {
-	m_tilesToRender.clear();
 	for (int i = 0; i < m_grid.size(); i++)
 	{
 		if (m_grid[i]->getType() != GridTile::TileType::Obstacle && m_grid[i]->getType() != GridTile::TileType::Start && m_grid[i]->getType() != GridTile::TileType::Goal)
 		{
 			m_grid[i]->reset();
-		}
-		else if (m_grid[i]->getType() == GridTile::TileType::Obstacle)
-		{
-			m_tilesToRender.push_back(i);
 		}
 		else if (m_grid[i]->getType() == GridTile::TileType::Start)
 		{
@@ -585,7 +596,6 @@ void GridManager::setToPath(int t_index)
 	if (m_grid[t_index]->getType() != GridTile::TileType::Goal && m_grid[t_index]->getType() != GridTile::TileType::Start)
 	{
 		m_grid[t_index]->setToPath();
-		m_tilesToRender.push_back(t_index);
 	}
 }
 
@@ -610,6 +620,40 @@ void GridManager::setTestLayout()
 	m_grid[104]->setToObstacle();
 	m_grid[105]->setToObstacle();
 	m_grid[106]->setToObstacle();
+}
+
+void GridManager::setSmallLayout()
+{
+	for (int i = 9; i < Utils::SMALL_SANDBOX_TILE_AMOUNT; i += 10)
+	{
+		m_grid[i]->setToObstacle();
+	}
+	for (int i = 10 * Utils::SMALL_SANDBOX_LAYOUT_TILES_PER_ROW; i < Utils::SMALL_SANDBOX_TILE_AMOUNT; i += 10 * Utils::SMALL_SANDBOX_LAYOUT_TILES_PER_ROW)
+	{
+		for (int j = i; j < (i + Utils::SMALL_SANDBOX_LAYOUT_TILES_PER_ROW); j++)
+		{
+			m_grid[j]->setToObstacle();
+		}
+	}
+}
+
+void GridManager::setMedLayout()
+{
+	for (int i = 9; i < Utils::MED_SANDBOX_TILE_AMOUNT; i += 10)
+	{
+		m_grid[i]->setToObstacle();
+	}
+	//for (int i = 10 * Utils::MED_SANDBOX_LAYOUT_TILES_PER_ROW; i < Utils::MED_SANDBOX_TILE_AMOUNT; i += 10 * Utils::MED_SANDBOX_LAYOUT_TILES_PER_ROW)
+	//{
+	//	for (int j = i; j < (i + Utils::MED_SANDBOX_LAYOUT_TILES_PER_ROW); j++)
+	//	{
+	//		m_grid[j]->setToObstacle();
+	//	}
+	//}
+}
+
+void GridManager::setLargeLayout()
+{
 }
 
 /// <summary>
@@ -645,12 +689,12 @@ float GridManager::backTrack()
 			if (breakoutCheck > MAX_TILES)
 			{
 				std::cout << "Exitted through breakout check!" << std::endl;
+				m_lines.clear();
 				return 0.0f;
 			}
 			if (ptr != m_grid[m_goalIndex] && ptr != m_grid[m_startIndex])
 			{
 				ptr->setToPath();
-				m_tilesToRender.push_back(ptr->getIndex());
 				std::cout << ptr->getIndex();
 				std::cout << " -> ";
 			}
@@ -747,15 +791,22 @@ void GridManager::init(float t_textOffset, const sf::Vector2f& t_textPos, int t_
 
 	initText(t_textOffset, t_textPos, t_charSize);
 
-	if (MAX_TILES == TEST_LAYOUT)
+	if (MAX_TILES == Utils::TEST_TILE_AMOUNT)
 	{
 		setTestLayout();
 	}
-}
-
-bool GridManager::getFullRender() const
-{
-	return m_fullRender;
+	else if (MAX_TILES == Utils::SMALL_SANDBOX_TILE_AMOUNT)
+	{
+		setSmallLayout();
+	}
+	else if (MAX_TILES == Utils::MED_SANDBOX_TILE_AMOUNT)
+	{
+		setMedLayout();
+	}
+	else if (MAX_TILES == Utils::LARGE_SANDBOX_TILE_AMOUNT)
+	{
+		setLargeLayout();
+	}
 }
 
 bool GridManager::reaAlgorithm()
@@ -2450,7 +2501,6 @@ bool GridManager::expand(SearchNode* t_cbn)
 	}
 
 	int origin = t_cbn->m_minValTile->getIndex();
-	//m_tempBoundaries.clear();
 	for (auto& boundary : m_tempBoundaries)
 	{
 		boundary.m_boundary.clear();
@@ -2664,20 +2714,16 @@ bool GridManager::successor(BoundaryNode& t_parentBoundary)
 		//if a point in a FSI was updated
 		if (fsiUpdated)
 		{
-			//loop through all FSIs to find cheapest one
-			for (int i = 0; i < t_parentBoundary.m_fsi.size(); i++)
+			SearchNode* PN = new SearchNode(fsi);
+			try
 			{
-				SearchNode* PN = new SearchNode(t_parentBoundary.m_fsi[i]);
-				try
-				{
-					m_searchNodes.emplace_back(PN);
-					m_openlist.push(PN);
-				}
-				catch (const std::exception&)
-				{
-					delete PN;
-					throw;
-				}
+				m_searchNodes.emplace_back(PN);
+				m_openlist.push(PN);
+			}
+			catch (const std::exception&)
+			{
+				delete PN;
+				throw;
 			}
 			if (m_debug)
 				reaGridRedraw();
@@ -2692,7 +2738,6 @@ void GridManager::setupFsiPoint(int& t_point, SearchNode& t_fsi)
 	m_grid[t_point]->m_hval = getOctileDist(m_grid[t_point]->getColRow(), m_grid[m_goalIndex]->getColRow());
 	m_grid[t_point]->m_fval = m_grid[t_point]->m_hval + m_grid[t_point]->m_gval;
 	m_grid[t_point]->setMarked(true);
-	m_tilesToRender.push_back(t_point);
 
 	if (t_fsi.m_minfval > m_grid[t_point]->m_fval)
 	{

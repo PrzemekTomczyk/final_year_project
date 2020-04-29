@@ -29,25 +29,12 @@
 #include <thread>
 #include <cstdlib>
 
-
-//boost
-#include "boost/thread.hpp"
-#include "boost/thread/scoped_thread.hpp"
-#include "boost/thread/mutex.hpp"
-#include "boost/thread/lock_types.hpp"
-
 //SFML
 #include <SFML/Graphics.hpp>
 
 //some external libraries
 #include <Thor/Vectors.hpp>
 #include <Thor/Time.hpp>
-
-
-//other
-//#include "Input.h" //for keyboard input
-//#include "XBOX360CONTROLLER.h" //for controller input
-//#include "FPS.h" //for fps
 
 //more stuff
 

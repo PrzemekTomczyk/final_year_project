@@ -64,7 +64,6 @@ public:
 	int& getCol();
 	int& getRow();
 
-
 	TileType& getType();
 
 private:
