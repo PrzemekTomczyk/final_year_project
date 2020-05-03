@@ -30,14 +30,7 @@ GridTile::GridTile(sf::Vector2f t_pos, sf::Vector2f t_size, int t_index, sf::Fon
 	m_column = x;
 	m_row = y;
 
-	m_type = TileType::None;
 	m_mode = ReaMode::None;
-	m_fval = std::numeric_limits<int>::max();
-	m_gval = std::numeric_limits<int>::max();
-	m_hval = std::numeric_limits<int>::max();
-	m_estDist = std::numeric_limits<int>::max();
-	m_totalDist = std::numeric_limits<int>::max();
-	m_currDist = std::numeric_limits<int>::max();
 	setColour();
 }
 
@@ -100,9 +93,6 @@ void GridTile::reset()
 	m_fval = std::numeric_limits<int>::max();
 	m_gval = std::numeric_limits<int>::max();
 	m_hval = std::numeric_limits<int>::max();
-	m_estDist = std::numeric_limits<int>::max();
-	m_totalDist = std::numeric_limits<int>::max();
-	m_currDist = std::numeric_limits<int>::max();
 }
 
 bool GridTile::getVisited() const
